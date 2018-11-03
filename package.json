@@ -1,0 +1,56 @@
+{
+    "name": "pip-services3-mqtt-node",
+    "version": "3.0.2",
+    "author": "Conceptual Vision Consulting LLC",
+    "description": "MQTT messaging for Pip.Services in Node.js",
+    "contributors": [
+        {
+            "name": "Sergey Seroukhov",
+            "email": "seroukhov@gmail.com"
+        }
+    ],
+    "main": "./obj/src/index.js",
+    "typings": "./obj/src/index.d.ts",
+    "keywords": [
+        "pip.services",
+        "microservice",
+        "communication",
+        "messaging",
+        "mqtt",
+        "library"
+    ],
+    "noAnalyze": true,
+    "repository": {
+        "type": "git",
+        "url": "ssh://git@github.com:pip-services3-node/pip-services3-mqtt-node.git"
+    },
+    "license": "MIT",
+    "engines": {
+        "node": ">=0.6.14"
+    },
+    "private": false,
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch",
+        "test": "mocha -t 10000 -R spec -u tdd --recursive ./obj/test",
+        "retest": "tsc && mocha -t 10000 -R spec -u tdd --recursive ./obj/test",
+        "docgen": "typedoc --out doc/api src --mode modules --excludeExternals --excludePrivate --target ES5 --ignoreCompilerErrors"
+    },
+    "dependencies": {
+        "pip-services3-commons-node": "^3.0.0",
+        "pip-services3-components-node": "^3.0.0",
+        "pip-services3-messaging-node": "^3.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "*",
+        "@types/lodash": "^4.0.0",
+        "@types/async": "^2.0.0",
+        "@types/mocha": "*",
+        "@types/chai": "*",
+        "mqtt": "^2.7.0",
+        "mocha": "^2.2.0",
+        "chai": "^3.5.0",
+        "typedoc": "^0.11.1",
+        "typedoc-plugin-external-module-name": "git+https://github.com/hobbyguy77/typedoc-plugin-external-module-name.git"
+    }
+}
