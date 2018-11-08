@@ -6,7 +6,7 @@ It contains MQTT messaging components: MqttMessageQueue, MqttConnectionResolver
 Quick Links:
 
 * [Downloads](https://github.com/pip-services-node/pip-services-mqtt-node/blob/master/doc/Downloads.md)
-* [API Reference]()
+* [API Reference](https://pip-services3-node.github.io/pip-services3-mqtt-node/globals.html)
 * [Building and Testing](https://github.com/pip-services/pip-services-mqtt-node/blob/master/doc/Development.md)
 * [Contributing](https://github.com/pip-services/pip-services-mqtt-node/blob/master/doc/Development.md/#contrib)
 
