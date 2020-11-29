@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DefaultMqttFactory = void 0;
 /** @module build */
 const pip_services3_components_node_1 = require("pip-services3-components-node");
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
@@ -20,7 +21,7 @@ class DefaultMqttFactory extends pip_services3_components_node_1.Factory {
         });
     }
 }
+exports.DefaultMqttFactory = DefaultMqttFactory;
 DefaultMqttFactory.Descriptor = new pip_services3_commons_node_1.Descriptor("pip-services", "factory", "mqtt", "default", "1.0");
 DefaultMqttFactory.MqttQueueDescriptor = new pip_services3_commons_node_1.Descriptor("pip-services", "message-queue", "mqtt", "*", "1.0");
-exports.DefaultMqttFactory = DefaultMqttFactory;
 //# sourceMappingURL=DefaultMqttFactory.js.map
