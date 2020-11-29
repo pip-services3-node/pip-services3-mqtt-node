@@ -2,6 +2,8 @@ let assert = require('chai').assert;
 let async = require('async');
 let process = require('process');
 
+import { TextDecoder } from 'text-encoding-shim';
+
 import { ConfigParams } from 'pip-services3-commons-node';
 
 import { IMessageQueue } from 'pip-services3-messaging-node';
@@ -47,6 +49,7 @@ suite('MqttMessageQueue', ()=> {
     test('Receive and Send Message', (done) => {
         let envelop1: MessageEnvelope = new MessageEnvelope("123", "Test", "Test message");
         let envelop2: MessageEnvelope;
+        let decoder = new TextDecoder()
 
         setTimeout(() => {
             queue.send(null, envelop1, () => { });
@@ -55,10 +58,12 @@ suite('MqttMessageQueue', ()=> {
         queue.receive(null, 10000, (err, result) => {
             envelop2 = result;
 
+            let decodedMessage = decoder.decode(new Uint8Array(JSON.parse(decoder.decode(envelop2.message))["data"]))
+
             assert.isNotNull(envelop2);
             assert.isNotNull(envelop1.message);
             assert.isNotNull(envelop2.message);
-            assert.equal(envelop1.message.toString(), envelop2.message.toString());
+            assert.equal(envelop1.message.toString(), decodedMessage);
             
             done(err);
         });
@@ -67,6 +72,7 @@ suite('MqttMessageQueue', ()=> {
     test('On Message', (done) => {
         let envelop1: MessageEnvelope = new MessageEnvelope("123", "Test", "Test message");
         let envelop2: MessageEnvelope = null;
+        let decoder = new TextDecoder();
 
         queue.beginListen(null, {
             receiveMessage: (envelop: MessageEnvelope, queue: IMessageQueue, callback: (err: any) => void): void => {
@@ -90,11 +96,13 @@ suite('MqttMessageQueue', ()=> {
                 }, 1000);
             },
             (callback) => {
+                let decodedMessage = decoder.decode(new Uint8Array(JSON.parse(decoder.decode(envelop2.message))["data"]))
+
                 assert.isNotNull(envelop2);
 
                 assert.isNotNull(envelop1.message);
                 assert.isNotNull(envelop2.message);
-                assert.equal(envelop1.message.toString(), envelop2.message.toString());
+                assert.equal(envelop1.message.toString(), decodedMessage);
 
                 callback();
             }

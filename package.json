@@ -41,20 +41,20 @@
         "highlight.js": "9.12.0",
         "handlebars": "4.0.12",
         "js-yaml": "3.12.0",
-        
         "pip-services3-commons-node": "^3.0.0",
         "pip-services3-components-node": "^3.0.0",
         "pip-services3-messaging-node": "^3.0.0"
     },
     "devDependencies": {
-        "@types/node": "*",
-        "@types/lodash": "^4.0.0",
         "@types/async": "^2.0.0",
-        "@types/mocha": "*",
         "@types/chai": "*",
-        "mqtt": "^2.7.0",
-        "mocha": "7.2.0",
+        "@types/lodash": "^4.0.0",
+        "@types/mocha": "*",
+        "@types/node": "*",
         "chai": "^3.5.0",
+        "mocha": "7.2.0",
+        "mqtt": "^2.7.0",
+        "text-encoding-shim": "^1.0.5",
         "typedoc": "^0.11.1",
         "typedoc-plugin-external-module-name": "git+https://github.com/hobbyguy77/typedoc-plugin-external-module-name.git"
     }
