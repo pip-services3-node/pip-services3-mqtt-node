@@ -4,7 +4,7 @@ This module is a part of the [Pip.Services](http://pipservices.org) polyglot mic
 
 The MQTT module contains a set of components for messaging using the Mqtt protocol. Contains the implementation of the components for working with messages: MqttMessageQueue, MqttConnectionResolver.
 
-This module contains the following packages:
+The module contains the following packages:
 - **Build** - factory default implementation
 - **Connect** - components for setting up the connection to the MQTT broker
 - **Queues** - components of working with a message queue via the MQTT protocol
