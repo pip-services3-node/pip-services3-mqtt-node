@@ -1,6 +1,6 @@
 {
-    "name": "pip-services-mqtt",
+    "name": "pip-services3-mqtt-node",
     "registry": "pipdevs",
     "version": "3.0.2",
-    "build": "0"
+    "build": 0
 }
