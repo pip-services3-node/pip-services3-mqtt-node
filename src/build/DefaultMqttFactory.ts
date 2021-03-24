@@ -3,6 +3,8 @@ import { Factory } from 'pip-services3-components-node';
 import { Descriptor } from 'pip-services3-commons-node';
 
 import { MqttMessageQueue } from '../queues/MqttMessageQueue';
+import { MqttConnection } from '../connect/MqttConnection';
+import { MqttMessageQueueFactory } from './MqttMessageQueueFactory';
 
 /**
  * Creates [[MqttMessageQueue]] components by their descriptors.
@@ -10,8 +12,9 @@ import { MqttMessageQueue } from '../queues/MqttMessageQueue';
  * @see [[MqttMessageQueue]]
  */
 export class DefaultMqttFactory extends Factory {
-	public static readonly Descriptor = new Descriptor("pip-services", "factory", "mqtt", "default", "1.0");
-    public static readonly MqttQueueDescriptor: Descriptor = new Descriptor("pip-services", "message-queue", "mqtt", "*", "1.0");
+    private static readonly MqttQueueDescriptor: Descriptor = new Descriptor("pip-services", "message-queue", "mqtt", "*", "1.0");
+ 	private static readonly MqttConnectionDescriptor: Descriptor = new Descriptor("pip-services", "connection", "mqtt", "*", "1.0");
+	private static readonly MqttQueueFactoryDescriptor: Descriptor = new Descriptor("pip-services", "queue-factory", "mqtt", "*", "1.0");
 
 	/**
 	 * Create a new instance of the factory.
@@ -19,7 +22,10 @@ export class DefaultMqttFactory extends Factory {
 	public constructor() {
         super();
         this.register(DefaultMqttFactory.MqttQueueDescriptor, (locator: Descriptor) => {
-            return new MqttMessageQueue(locator.getName());
+            let name = (typeof locator.getName === "function") ? locator.getName() : null; 
+            return new MqttMessageQueue(name);
         });
+		this.registerAsType(DefaultMqttFactory.MqttConnectionDescriptor, MqttConnection);
+		this.registerAsType(DefaultMqttFactory.MqttQueueFactoryDescriptor, MqttMessageQueueFactory);
 	}
 }

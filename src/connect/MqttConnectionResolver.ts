@@ -1,6 +1,6 @@
 /** @module connect */
 /** @hidden */
-let async = require('async');
+const async = require('async');
 
 import { IReferenceable } from 'pip-services3-commons-node';
 import { IReferences } from 'pip-services3-commons-node';
@@ -70,7 +70,7 @@ export class MqttConnectionResolver implements IReferenceable, IConfigurable {
         let uri = connection.getUri();
         if (uri != null) return null;
 
-        let protocol = connection.getAsNullableString("protocol");
+        let protocol = connection.getAsStringWithDefault("protocol", "mqtt");
         if (protocol == null)
             return new ConfigException(correlationId, "NO_PROTOCOL", "Connection protocol is not set");
 
@@ -78,7 +78,7 @@ export class MqttConnectionResolver implements IReferenceable, IConfigurable {
         if (host == null)
             return new ConfigException(correlationId, "NO_HOST", "Connection host is not set");
 
-        let port = connection.getPort();
+        let port = connection.getAsIntegerWithDefault("port", 1883);
         if (port == 0)
             return new ConfigException(correlationId, "NO_PORT", "Connection port is not set");
 
@@ -87,16 +87,18 @@ export class MqttConnectionResolver implements IReferenceable, IConfigurable {
 
     private composeOptions(connection: ConnectionParams, credential: CredentialParams): any {
         // Define additional parameters parameters
-        let options: any = connection.override(credential).getAsObject();
+        let options = connection.override(credential);
 
         // Compose uri
-        if (options.uri == null) {
-            options.uri = options.protocol + "://" + options.host;
-            if (options.port)
-                options.uri += ':' + options.port;
+        if (options.getAsString("uri") == null) {
+            let protocol = connection.getAsStringWithDefault("protocol", "mqtt");
+            let host = connection.getHost();
+            let port = connection.getAsIntegerWithDefault("port", 1883);
+            let uri = protocol + "://" + host + ":" + port;
+            options.setAsObject("uri", uri);
         }
 
-        return options;
+        return options.getAsObject();
     }
 
     /**

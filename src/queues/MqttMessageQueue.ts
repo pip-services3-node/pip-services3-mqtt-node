@@ -1,16 +1,31 @@
 /** @module queues */
 /** @hidden */
-let async = require('async');
+const _ = require('lodash');
+/** @hidden */
+const async = require('async');
+/** @hidden */
+const mqtt = require('mqtt');
 
+import { DateTimeConverter } from 'pip-services3-commons-node';
+import { StringConverter } from 'pip-services3-commons-node';
+import { IReferenceable } from 'pip-services3-commons-node';
+import { IUnreferenceable } from 'pip-services3-commons-node';
+import { IReferences } from 'pip-services3-commons-node';
+import { IConfigurable } from 'pip-services3-commons-node';
+import { IOpenable } from 'pip-services3-commons-node';
+import { ICleanable } from 'pip-services3-commons-node';
+import { ConfigParams } from 'pip-services3-commons-node';
+import { ConnectionException } from 'pip-services3-commons-node';
+import { InvalidStateException } from 'pip-services3-commons-node';
+import { DependencyResolver } from 'pip-services3-commons-node';
+import { CompositeLogger } from 'pip-services3-components-node';
+import { IMessageReceiver, MessageQueue } from 'pip-services3-messaging-node';
+import { MessagingCapabilities } from 'pip-services3-messaging-node';
+import { MessageEnvelope } from 'pip-services3-messaging-node';
 import { ConnectionParams } from 'pip-services3-components-node';
 import { CredentialParams } from 'pip-services3-components-node';
 
-import { IMessageReceiver } from 'pip-services3-messaging-node';
-import { MessageQueue } from 'pip-services3-messaging-node';
-import { MessageEnvelope } from 'pip-services3-messaging-node';
-import { MessagingCapabilities } from 'pip-services3-messaging-node';
-
-import { MqttConnectionResolver } from '../connect/MqttConnectionResolver';
+import { MqttConnection } from '../connect/MqttConnection';
 
 /**
  * Message queue that sends and receives messages via MQTT message broker.
@@ -29,6 +44,11 @@ import { MqttConnectionResolver } from '../connect/MqttConnectionResolver';
  *   - store_key:                   (optional) a key to retrieve the credentials from [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/auth.icredentialstore.html ICredentialStore]]
  *   - username:                    user name
  *   - password:                    user password
+ * - options:
+ *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
+ *   - connect_timeout:      (optional) number of milliseconds to wait for connection (default: 30000)
+ *   - reconnect_timeout:    (optional) number of milliseconds to wait on each reconnection attempt (default: 1000)
+ *   - keepalive_timeout:    (optional) number of milliseconds to ping broker while inactive (default: 3000)
  * 
  * ### References ###
  * 
@@ -36,6 +56,7 @@ import { MqttConnectionResolver } from '../connect/MqttConnectionResolver';
  * - <code>\*:counters:\*:\*:1.0</code>           (optional) [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/count.icounters.html ICounters]] components to pass collected measurements
  * - <code>\*:discovery:\*:\*:1.0</code>          (optional) [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]] services to resolve connections
  * - <code>\*:credential-store:\*:\*:1.0</code>   (optional) Credential stores to resolve credentials
+ * - <code>\*:connection:nats:\*:1.0</code>       (optional) Shared connection to MQTT service
  * 
  * @see [[MessageQueue]]
  * @see [[MessagingCapabilities]]
@@ -63,22 +84,109 @@ import { MqttConnectionResolver } from '../connect/MqttConnectionResolver';
  *         }
  *     });
  */
-export class MqttMessageQueue extends MessageQueue {
-    private _client: any;
-    private _topic: string;
-    private _subscribed: boolean = false;
-    private _optionsResolver: MqttConnectionResolver = new MqttConnectionResolver();
-    private _receiver: IMessageReceiver;
-    private _messages: MessageEnvelope[];
+export class MqttMessageQueue extends MessageQueue
+    implements IReferenceable, IUnreferenceable, IConfigurable, IOpenable, ICleanable {
+
+    private static _defaultConfig: ConfigParams = ConfigParams.fromTuples(
+        "topic", null,
+        "options.serialize_envelop", true,
+        "options.retry_connect", true,
+        "options.connect_timeout", 30000,
+        "options.reconnect_timeout", 1000,
+        "options.keepalive_timeout", 60000
+    );
+
+    private _config: ConfigParams;
+    private _references: IReferences;
+    private _opened: boolean;
+    private _localConnection: boolean;
 
     /**
-     * Creates a new instance of the message queue.
+     * The dependency resolver.
+     */
+    protected _dependencyResolver: DependencyResolver = new DependencyResolver(MqttMessageQueue._defaultConfig);
+    /** 
+     * The logger.
+     */
+    protected _logger: CompositeLogger = new CompositeLogger();
+    
+    /**
+     * The MQTT connection component.
+     */
+    protected _connection: MqttConnection;
+
+    /**
+     * The MQTT connection pool object.
+     */
+    protected _client: any;
+
+    protected _serializeEnvelop: boolean;
+    protected _topic: string;
+    private _messages: MessageEnvelope[] = [];
+    private _receiver: IMessageReceiver;
+
+    /**
+     * Creates a new instance of the persistence component.
      * 
-     * @param name  (optional) a queue name.
+     * @param name    (optional) a queue name.
      */
     public constructor(name?: string) {
-        super(name);
-        this._capabilities = new MessagingCapabilities(false, true, true, true, true, false, false, false, true);
+        super(name, new MessagingCapabilities(false, true, true, true, true, false, false, false, true));
+    }
+
+    /**
+     * Configures component by passing configuration parameters.
+     * 
+     * @param config    configuration parameters to be set.
+     */
+    public configure(config: ConfigParams): void {
+        config = config.setDefaults(MqttMessageQueue._defaultConfig);
+        this._config = config;
+
+        this._dependencyResolver.configure(config);
+
+        this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop)
+        this._topic = config.getAsStringWithDefault("topic", this._topic);
+    }
+
+    /**
+	 * Sets references to dependent components.
+	 * 
+	 * @param references 	references to locate the component dependencies. 
+     */
+    public setReferences(references: IReferences): void {
+        this._references = references;
+        this._logger.setReferences(references);
+
+        // Get connection
+        this._dependencyResolver.setReferences(references);
+        this._connection = this._dependencyResolver.getOneOptional('connection');
+        // Or create a local one
+        if (this._connection == null) {
+            this._connection = this.createConnection();
+            this._localConnection = true;
+        } else {
+            this._localConnection = false;
+        }
+    }
+
+    /**
+	 * Unsets (clears) previously set references to dependent components. 
+     */
+    public unsetReferences(): void {
+        this._connection = null;
+    }
+
+    private createConnection(): MqttConnection {
+        let connection = new MqttConnection();
+        
+        if (this._config)
+            connection.configure(this._config);
+        
+        if (this._references)
+            connection.setReferences(this._references);
+            
+        return connection;
     }
 
     /**
@@ -87,7 +195,64 @@ export class MqttMessageQueue extends MessageQueue {
 	 * @returns true if the component has been opened and false otherwise.
      */
     public isOpen(): boolean {
-        return this._client != null;
+        return this._opened;
+    }
+
+    /**
+	 * Opens the component.
+	 * 
+	 * @param correlationId 	(optional) transaction id to trace execution through call chain.
+     * @param callback 			callback function that receives error or null no errors occured.
+     */
+    public open(correlationId: string, callback?: (err: any) => void): void {
+    	if (this._opened) {
+            callback(null);
+            return;
+        }
+        
+        if (this._connection == null) {
+            this._connection = this.createConnection();
+            this._localConnection = true;
+        }
+
+        let openCurl = (err) => {
+            if (err == null && this._connection == null) {
+                err = new InvalidStateException(correlationId, 'NO_CONNECTION', 'MQTT connection is missing');
+            }
+
+            if (err == null && !this._connection.isOpen()) {
+                err = new ConnectionException(correlationId, "CONNECT_FAILED", "MQTT connection is not opened");
+            }
+
+            if (err != null) {
+                if (callback) callback(err);
+                return;
+            }
+
+            this._client = this._connection.getConnection();
+
+            // Subscribe right away
+            let topic = this.getTopic();
+            this._client.subscribe(topic, (err) => {
+                if (err != null) {
+                    this._client = null;
+                    this._logger.error(null, err, "Failed to subscribe to topic " + this.getTopic());
+                    if (callback) callback(err);
+                    return;
+                }
+
+                this._opened = true;        
+                this._connection.addMessageListener(this);
+
+                if (callback) callback(null);
+            });    
+        };
+
+        if (this._localConnection) {
+            this._connection.open(correlationId, openCurl);
+        } else {
+            openCurl(null);
+        }
     }
 
     /**
@@ -98,28 +263,11 @@ export class MqttMessageQueue extends MessageQueue {
      * @param credential        credential parameters
      * @param callback 			callback function that receives error or null no errors occured.
      */
-    protected openWithParams(correlationId: string, connection: ConnectionParams, credential: CredentialParams, callback: (err: any) => void): void {
-        this._topic = connection.getAsString('topic');
-
-        this._optionsResolver.compose(correlationId, connection, credential, (err, options) => {
-            if (err) {
-                callback(err);
-                return;
-            }
-
-            let mqtt = require('mqtt');
-            let client = mqtt.connect(options.uri, options);
-
-            client.on('connect', () => {
-                this._client = client;
-                callback(null);
-            });
-            
-            client.on('error', (err) => {
-                callback(err);
-            });
-        });
-    }
+    protected openWithParams(correlationId: string,
+        connections: ConnectionParams[], credential: CredentialParams,
+        callback: (err: any) => void): void {
+        throw new Error("Not supported");
+    }    
 
     /**
 	 * Closes component and frees used resources.
@@ -127,18 +275,94 @@ export class MqttMessageQueue extends MessageQueue {
 	 * @param correlationId 	(optional) transaction id to trace execution through call chain.
      * @param callback 			callback function that receives error or null no errors occured.
      */
-    public close(correlationId: string, callback: (err: any) => void): void {
-        if (this._client != null) {
-            this._messages = [];
-            this._subscribed = false;
-            this._receiver = null;
-
-            this._client.end();
-            this._client = null;
-            this._logger.trace(correlationId, "Closed queue %s", this);
+    public close(correlationId: string, callback?: (err: any) => void): void {
+    	if (!this._opened) {
+            callback(null);
+            return;
         }
 
-        callback(null);
+        if (this._connection == null) {
+            callback(new InvalidStateException(correlationId, 'NO_CONNECTION', 'Mqtt connection is missing'));
+            return;
+        }
+        
+        let closeCurl = (err) => {
+            this._connection.removeMessageListener(this);
+
+            this._messages = [];
+            this._opened = false;
+            this._client = null;
+            this._receiver = null;
+
+            if (callback) callback(err);
+        }
+
+        if (this._localConnection) {
+            this._connection.close(correlationId, closeCurl);
+        } else {
+            closeCurl(null);
+        }
+    }
+
+    protected getTopic(): string {
+        return this._topic != null && this._topic != "" ? this._topic : this.getName();
+    }
+
+    protected fromMessage(message: MessageEnvelope): any {
+        if (message == null) return null;
+
+        let data = message.message;
+        if (this._serializeEnvelop) {
+            let json = JSON.stringify(message);
+            data = Buffer.from(json, 'utf-8');
+        }
+
+        return {
+            topic: this.getName() || this._topic,
+            data: data
+        };
+    }
+
+    protected toMessage(topic: string, data: any, packet: any): MessageEnvelope {
+        if (data == null) return null;
+
+        let message: MessageEnvelope;
+        if (this._serializeEnvelop) {
+            let json = Buffer.from(data).toString('utf-8');
+            message = MessageEnvelope.fromJSON(json);
+        } else {
+            message = new MessageEnvelope(null, topic, data);
+            message.message_id = packet.messageId;
+            // message.message_type = topic;
+            // message.message = Buffer.from(data);
+        }
+
+        return message;
+    }
+
+    public onMessage(topic: string, data: any, packet: any): void {
+        // Skip if it came from a wrong topic
+        let expectedTopic = this.getTopic();
+        if (expectedTopic.indexOf("*") < 0 && expectedTopic != topic) {
+            return;
+        }
+
+        // Deserialize message
+        let message = this.toMessage(topic, data, packet);
+        if (message == null) {
+            this._logger.error(null, null, "Failed to read received message");
+            return;
+        }
+
+        this._counters.incrementOne("queue." + this.getName() + ".received_messages");
+        this._logger.debug(message.correlation_id, "Received message %s via %s", message, this.getName());
+
+        // Send message to receiver if its set or put it into the queue
+        if (this._receiver != null) {
+            this.sendMessageToReceiver(this._receiver, message);
+        } else {
+            this._messages.push(message);
+        }
     }
 
     /**
@@ -147,7 +371,7 @@ export class MqttMessageQueue extends MessageQueue {
 	 * @param correlationId 	(optional) transaction id to trace execution through call chain.
      * @param callback 			callback function that receives error or null no errors occured.
      */
-    public clear(correlationId: string, callback: (err?: any) => void): void {
+     public clear(correlationId: string, callback: (err?: any) => void): void {
         this._messages = [];
         callback();
     }
@@ -157,26 +381,8 @@ export class MqttMessageQueue extends MessageQueue {
      * 
      * @param callback      callback function that receives number of messages or error.
      */
-    public readMessageCount(callback: (err: any, count: number) => void): void {
-        // Subscribe to get messages
-        this.subscribe();
-
-        let count = this._messages.length;
-        callback(null, count);
-    }
-
-    /**
-     * Sends a message into the queue.
-     * 
-     * @param correlationId     (optional) transaction id to trace execution through call chain.
-     * @param envelope          a message envelop to be sent.
-     * @param callback          (optional) callback function that receives error or null for success.
-     */
-    public send(correlationId: string, envelop: MessageEnvelope, callback?: (err: any) => void): void {
-        this._counters.incrementOne("queue." + this.getName() + ".sent_messages");
-        this._logger.debug(envelop.correlation_id, "Sent message %s via %s", envelop.toString(), this.toString());
-
-        this._client.publish(this._topic, envelop.message, callback);
+     public readMessageCount(callback: (err: any, count: number) => void): void {
+        callback(null, this._messages.length);
     }
 
     /**
@@ -186,13 +392,23 @@ export class MqttMessageQueue extends MessageQueue {
      * @param correlationId     (optional) transaction id to trace execution through call chain.
      * @param callback          callback function that receives a message or error.
      */
-    public peek(correlationId: string, callback: (err: any, result: MessageEnvelope) => void): void {
-        // Subscribe to get messages
-        this.subscribe();
+     public peek(correlationId: string, callback: (err: any, result: MessageEnvelope) => void): void {
+        let err = this.checkOpen(correlationId);
+        if (err != null) {
+            callback(err, null);
+            return;
+        }
 
-        if (this._messages.length > 0)
-            callback(null, this._messages[0]);
-        else callback(null, null);
+        let message: MessageEnvelope = null;
+        if (this._messages.length > 0) {
+            message = this._messages[0];
+        }
+
+        if (message != null) {
+    		this._logger.trace(message.correlation_id, "Peeked message %s on %s", message, this.getName());
+        }
+
+        callback(null, message);
     }
 
     /**
@@ -206,10 +422,17 @@ export class MqttMessageQueue extends MessageQueue {
      * @param callback          callback function that receives a list with messages or error.
      */
     public peekBatch(correlationId: string, messageCount: number, callback: (err: any, result: MessageEnvelope[]) => void): void {
-        // Subscribe to get messages
-        this.subscribe();
+        let err = this.checkOpen(correlationId);
+        if (err != null) {
+            callback(err, null);
+            return;
+        }
 
-        callback(null, this._messages);
+        let messages = this._messages.slice(0, messageCount);
+
+        this._logger.trace(correlationId, "Peeked %d messages on %s", messages.length, this.getName());
+
+        callback(null, messages);
     }
 
     /**
@@ -220,12 +443,7 @@ export class MqttMessageQueue extends MessageQueue {
      * @param callback          callback function that receives a message or error.
      */
     public receive(correlationId: string, waitTimeout: number, callback: (err: any, result: MessageEnvelope) => void): void {
-        let err: any = null;
         let message: MessageEnvelope = null;
-        let messageReceived: boolean = false;
-
-        // Subscribe to get messages
-        this.subscribe();
 
         // Return message immediately if it exist
         if (this._messages.length > 0) {
@@ -235,24 +453,45 @@ export class MqttMessageQueue extends MessageQueue {
         }
 
         // Otherwise wait and return
-        let checkIntervalMs = 100;
-        let i = 0;
+        let checkInterval = 100;
+        let elapsedTime = 0;
         async.whilst(
             () => {
-                return this._client && i < waitTimeout && message == null;
+                return this.isOpen() && elapsedTime < waitTimeout && message == null;
             },
             (whilstCallback) => {
-                i = i + checkIntervalMs;
+                elapsedTime += checkInterval;
 
                 setTimeout(() => {
                     message = this._messages.shift();
                     whilstCallback();
-                }, checkIntervalMs);
+                }, checkInterval);
             },
             (err) => {
                 callback(err, message);
             }
         );
+    }
+
+    /**
+     * Sends a message into the queue.
+     * 
+     * @param correlationId     (optional) transaction id to trace execution through call chain.
+     * @param message           a message envelop to be sent.
+     * @param callback          (optional) callback function that receives error or null for success.
+     */
+    public send(correlationId: string, message: MessageEnvelope, callback?: (err: any) => void): void {
+        let err = this.checkOpen(correlationId);
+        if (err != null) {
+            if (callback) callback(err);
+            return;
+        }
+
+        this._counters.incrementOne("queue." + this.getName() + ".sent_messages");
+        this._logger.debug(message.correlation_id, "Sent message %s via %s", message.toString(), this.toString());
+
+        let msg = this.fromMessage(message);
+        this._client.publish(msg.topic, msg.data, callback);
     }
 
     /**
@@ -265,7 +504,7 @@ export class MqttMessageQueue extends MessageQueue {
      * @param lockTimeout   a locking timeout in milliseconds.
      * @param callback      (optional) callback function that receives an error or null for success.
      */
-    public renewLock(message: MessageEnvelope, lockTimeout: number, callback?: (err: any) => void): void {
+     public renewLock(message: MessageEnvelope, lockTimeout: number, callback?: (err: any) => void): void {
         // Not supported
         if (callback) callback(null);
     }
@@ -313,54 +552,25 @@ export class MqttMessageQueue extends MessageQueue {
         if (callback) callback(null);
     }
 
-    private toMessage(topic: string, message: any, packet: any): MessageEnvelope {
-        let envelop = new MessageEnvelope(null, topic, message);
-        envelop.message_id = packet.messageId;
-        return envelop;
-    }
-
-    /**
-     * Subscribes to the topic.
-     */
-    protected subscribe(): void {
-        // Exit if already subscribed or 
-        if (this._subscribed && this._client == null)
+    private sendMessageToReceiver(receiver: IMessageReceiver, message: MessageEnvelope): void {
+        let correlationId = message != null ? message.correlation_id : null;
+        if (message == null || receiver == null) {
+            this._logger.warn(correlationId, "MQTT message was skipped.");
             return;
+        }
 
-        this._logger.trace(null, "Started listening messages at %s", this.toString());
-
-        this._client.on('message', (topic, message, packet) => {
-            let envelop = this.toMessage(topic, message, packet);
-
-            this._counters.incrementOne("queue." + this.getName() + ".received_messages");
-            this._logger.debug(message.correlation_id, "Received message %s via %s", message, this.toString());
-
-            if (this._receiver != null) {
-                try {
-                    this._receiver.receiveMessage(envelop, this, (err) => {
-                        if (err) this._logger.error(null, err, "Failed to receive the message");
-                    });
-                } catch (ex) {
-                    this._logger.error(null, ex, "Failed to receive the message");
+        try {
+            this._receiver.receiveMessage(message, this, (err) => {
+                if (err != null) {
+                    this._logger.error(correlationId, err, "Failed to process the message");
                 }
-            } else {
-                // Keep message queue managable
-                while (this._messages.length > 1000)
-                    this._messages.shift();
-                    
-                // Push into the message queue
-                this._messages.push(envelop);
-            }
-        });
-
-        // Subscribe to the topic
-        this._client.subscribe(this._topic, (err) => {
-            if (err) this._logger.error(null, err, "Failed to subscribe to topic " + this._topic);
-        });
-        this._subscribed = true;
+            });
+        } catch (err) {
+            this._logger.error(correlationId, err, "Failed to process the message");
+        }
     }
 
-    /**
+     /**
      * Listens for incoming messages and blocks the current thread until queue is closed.
      * 
      * @param correlationId     (optional) transaction id to trace execution through call chain.
@@ -369,25 +579,29 @@ export class MqttMessageQueue extends MessageQueue {
      * @see [[IMessageReceiver]]
      * @see [[receive]]
      */
-    public listen(correlationId: string, receiver: IMessageReceiver): void {
-        this._receiver = receiver;
+      public listen(correlationId: string, receiver: IMessageReceiver): void {
+        this._logger.trace(null, "Started listening messages at %s", this.getName());
 
-        // Pass all cached messages
+        // Resend collected messages to receiver
         async.whilst(
             () => {
-                return this._messages.length > 0 && this._receiver != null;
+                return this.isOpen() && this._messages.length > 0;
             },
             (whilstCallback) => {
-                if (this._messages.length > 0 && this._receiver != null) {
-                    let message = this._messages.shift();
-                    receiver.receiveMessage(message, this, whilstCallback);
-                } else whilstCallback();
+                let message = this._messages.shift();
+                if (message != null) {
+                    this.sendMessageToReceiver(receiver, message);
+                }
+                whilstCallback();
             },
             (err) => {
-                // Subscribe to get messages
-                this.subscribe();
+                // Set the receiver
+                if (this.isOpen()) {
+                    this._receiver = receiver;
+                }
             }
         );
+
     }
 
     /**
@@ -398,11 +612,5 @@ export class MqttMessageQueue extends MessageQueue {
      */
     public endListen(correlationId: string): void {
         this._receiver = null;
-
-        if (this._subscribed) {
-            this._client.unsubscribe(this._topic);
-            this._subscribed = false;
-        }
-    }
-
+    }   
 }

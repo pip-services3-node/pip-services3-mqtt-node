@@ -1,6 +1,6 @@
 {
     "name": "pip-services3-mqtt-node",
-    "version": "3.0.2",
+    "version": "3.1.0",
     "author": "Conceptual Vision Consulting LLC",
     "description": "MQTT messaging for Pip.Services in Node.js",
     "contributors": [
@@ -36,9 +36,10 @@
         "retest": "tsc && mocha -t 10000 -R spec -u tdd --recursive ./obj/test"
     },
     "dependencies": {
+        "mqtt": "^4.2.6",
         "pip-services3-commons-node": "^3.0.0",
         "pip-services3-components-node": "^3.0.0",
-        "pip-services3-messaging-node": "^3.0.0"
+        "pip-services3-messaging-node": "^3.2.0"
     },
     "devDependencies": {
         "@types/async": "^2.0.0",
@@ -48,7 +49,6 @@
         "@types/node": "*",
         "chai": "^3.5.0",
         "mocha": "^7.2.0",
-        "mqtt": "^2.7.0",
         "text-encoding-shim": "^1.0.5"
     }
 }
