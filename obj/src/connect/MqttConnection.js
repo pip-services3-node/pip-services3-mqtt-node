@@ -7,6 +7,7 @@ const mqtt = require('mqtt');
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
 const pip_services3_components_node_1 = require("pip-services3-components-node");
 const pip_services3_commons_node_2 = require("pip-services3-commons-node");
+const pip_services3_commons_node_3 = require("pip-services3-commons-node");
 const MqttConnectionResolver_1 = require("../connect/MqttConnectionResolver");
 /**
  * Connection to MQTT message broker.
@@ -63,9 +64,9 @@ class MqttConnection {
          */
         this._options = new pip_services3_commons_node_1.ConfigParams();
         /**
-         * Message listeners
+         * Topic subscriptions
          */
-        this._messageListeners = [];
+        this._subscriptions = [];
         this._retryConnect = true;
         this._connectTimeout = 30000;
         this._keepAliveTimeout = 60000;
@@ -138,8 +139,12 @@ class MqttConnection {
                 callback(err);
             });
             client.on('message', (topic, data, packet) => {
-                for (let listener of this._messageListeners) {
-                    listener.onMessage(topic, data, packet);
+                for (let subscription of this._subscriptions) {
+                    // Todo: Implement proper filtering by wildcards?
+                    if (subscription.filter && topic != subscription.topic) {
+                        continue;
+                    }
+                    subscription.listener.onMessage(topic, data, packet);
                 }
             });
         });
@@ -158,6 +163,7 @@ class MqttConnection {
         }
         this._connection.end();
         this._connection = null;
+        this._subscriptions = [];
         this._logger.debug(correlationId, "Disconnected from MQTT broker");
         if (callback)
             callback(null);
@@ -173,12 +179,94 @@ class MqttConnection {
     getQueueNames() {
         return [];
     }
-    addMessageListener(listener) {
-        this._messageListeners = this._messageListeners.filter(l => l != listener);
-        this._messageListeners.push(listener);
+    /**
+     * Checks if connection is open
+     * @returns an error is connection is closed or <code>null<code> otherwise.
+     */
+    checkOpen() {
+        if (this.isOpen())
+            return null;
+        return new pip_services3_commons_node_3.InvalidStateException(null, "NOT_OPEN", "Connection was not opened");
     }
-    removeMessageListener(listener) {
-        this._messageListeners = this._messageListeners.filter(l => l != listener);
+    /**
+     * Publish a message to a specified topic
+     * @param topic a topic name
+     * @param data a message to be published
+     * @param options publishing options
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    publish(topic, data, options, callback) {
+        // Check for open connection
+        let err = this.checkOpen();
+        if (err) {
+            if (callback)
+                callback(err);
+            return;
+        }
+        this._connection.publish(topic, data, options, callback);
+    }
+    /**
+     * Subscribe to a topic
+     * @param topic a topic name
+     * @param options subscription options
+     * @param listener a message listener
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    subscribe(topic, options, listener, callback) {
+        // Check for open connection
+        let err = this.checkOpen();
+        if (err != null) {
+            if (callback)
+                callback(err);
+            return;
+        }
+        // Subscribe to topic
+        this._connection.subscribe(topic, options, (err) => {
+            if (err != null) {
+                if (callback)
+                    callback(err);
+                return;
+            }
+            // Determine if messages shall be filtered (topic without wildcarts)
+            let filter = topic.indexOf("*") < 0;
+            // Add the subscription
+            let subscription = {
+                topic: topic,
+                options: options,
+                filter: filter,
+                listener: listener
+            };
+            this._subscriptions.push(subscription);
+            if (callback)
+                callback(null);
+        });
+    }
+    /**
+     * Unsubscribe from a previously subscribed topic
+     * @param topic a topic name
+     * @param listener a message listener
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    unsubscribe(topic, listener, callback) {
+        // Find the subscription index
+        let index = this._subscriptions.findIndex((s) => s.topic == topic && s.listener == listener);
+        if (index < 0) {
+            if (callback)
+                callback(null);
+            return;
+        }
+        // Remove the subscription
+        this._subscriptions.splice(index, 1);
+        // Check if there other subscriptions to the same topic
+        index = this._subscriptions.findIndex((s) => s.topic == topic);
+        // Unsubscribe from topic if connection is still open
+        if (this._connection != null && index < 0) {
+            this._connection.unsubscribe(topic, callback);
+        }
+        else {
+            if (callback)
+                callback(null);
+        }
     }
 }
 exports.MqttConnection = MqttConnection;

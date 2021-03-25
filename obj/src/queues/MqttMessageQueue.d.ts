@@ -30,6 +30,8 @@ import { MqttConnection } from '../connect/MqttConnection';
  *   - username:                    user name
  *   - password:                    user password
  * - options:
+ *   - qos:                  (optional) quality of service level aka QOS (default: 0)
+ *   - retain:               (optional) retention flag for published messages (default: false)
  *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
  *   - connect_timeout:      (optional) number of milliseconds to wait for connection (default: 30000)
  *   - reconnect_timeout:    (optional) number of milliseconds to wait on each reconnection attempt (default: 1000)
@@ -87,14 +89,12 @@ export declare class MqttMessageQueue extends MessageQueue implements IReference
      * The MQTT connection component.
      */
     protected _connection: MqttConnection;
-    /**
-     * The MQTT connection pool object.
-     */
-    protected _client: any;
     protected _serializeEnvelop: boolean;
     protected _topic: string;
-    private _messages;
-    private _receiver;
+    protected _qos: number;
+    protected _retain: boolean;
+    protected _messages: MessageEnvelope[];
+    protected _receiver: IMessageReceiver;
     /**
      * Creates a new instance of the persistence component.
      *

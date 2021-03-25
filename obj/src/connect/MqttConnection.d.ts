@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { IReferenceable } from 'pip-services3-commons-node';
 import { IReferences } from 'pip-services3-commons-node';
 import { IConfigurable } from 'pip-services3-commons-node';
@@ -7,6 +8,7 @@ import { CompositeLogger } from 'pip-services3-components-node';
 import { IMessageQueueConnection } from 'pip-services3-messaging-node';
 import { MqttConnectionResolver } from '../connect/MqttConnectionResolver';
 import { IMqttMessageListener } from './IMqttMessageListener';
+import { MqttSubscription } from './MqttSubscription';
 /**
  * Connection to MQTT message broker.
  *
@@ -59,13 +61,13 @@ export declare class MqttConnection implements IMessageQueueConnection, IReferen
      */
     protected _connection: any;
     /**
-     * Message listeners
+     * Topic subscriptions
      */
-    private _messageListeners;
-    private _retryConnect;
-    private _connectTimeout;
-    private _keepAliveTimeout;
-    private _reconnectTimeout;
+    protected _subscriptions: MqttSubscription[];
+    protected _retryConnect: boolean;
+    protected _connectTimeout: number;
+    protected _keepAliveTimeout: number;
+    protected _reconnectTimeout: number;
     /**
      * Creates a new instance of the connection component.
      */
@@ -109,6 +111,32 @@ export declare class MqttConnection implements IMessageQueueConnection, IReferen
      * @returns a list with registered queue names.
      */
     getQueueNames(): string[];
-    addMessageListener(listener: IMqttMessageListener): void;
-    removeMessageListener(listener: IMqttMessageListener): void;
+    /**
+     * Checks if connection is open
+     * @returns an error is connection is closed or <code>null<code> otherwise.
+     */
+    protected checkOpen(): any;
+    /**
+     * Publish a message to a specified topic
+     * @param topic a topic name
+     * @param data a message to be published
+     * @param options publishing options
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    publish(topic: string, data: Buffer, options: any, callback?: (err: any) => void): void;
+    /**
+     * Subscribe to a topic
+     * @param topic a topic name
+     * @param options subscription options
+     * @param listener a message listener
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    subscribe(topic: string, options: any, listener: IMqttMessageListener, callback?: (err: any) => void): void;
+    /**
+     * Unsubscribe from a previously subscribed topic
+     * @param topic a topic name
+     * @param listener a message listener
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    unsubscribe(topic: string, listener: IMqttMessageListener, callback?: (err: any) => void): void;
 }

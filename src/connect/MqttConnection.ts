@@ -10,9 +10,12 @@ import { ConfigParams } from 'pip-services3-commons-node';
 import { CompositeLogger } from 'pip-services3-components-node';
 import { IMessageQueueConnection } from 'pip-services3-messaging-node';
 import { ConnectionException } from 'pip-services3-commons-node';
+import { InvalidStateException } from 'pip-services3-commons-node';
 
 import { MqttConnectionResolver } from '../connect/MqttConnectionResolver';
 import { IMqttMessageListener } from './IMqttMessageListener';
+import { MqttSubscription } from './MqttSubscription';
+import { callbackify } from 'node:util';
 
 /**
  * Connection to MQTT message broker.
@@ -78,14 +81,14 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
     protected _connection: any;
 
     /**
-     * Message listeners
+     * Topic subscriptions
      */
-    private _messageListeners: IMqttMessageListener[] = [];
+    protected _subscriptions: MqttSubscription[] = [];
 
-    private _retryConnect: boolean = true;
-    private _connectTimeout: number = 30000;
-    private _keepAliveTimeout: number = 60000;
-    private _reconnectTimeout: number = 1000;
+    protected _retryConnect: boolean = true;
+    protected _connectTimeout: number = 30000;
+    protected _keepAliveTimeout: number = 60000;
+    protected _reconnectTimeout: number = 1000;
 
     /**
      * Creates a new instance of the connection component.
@@ -167,8 +170,13 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
             });
 
             client.on('message', (topic, data, packet) => {
-                for (let listener of this._messageListeners) {
-                    listener.onMessage(topic, data, packet);
+                for (let subscription of this._subscriptions) {
+                    // Todo: Implement proper filtering by wildcards?
+                    if (subscription.filter && topic != subscription.topic) {
+                        continue;
+                    }
+
+                    subscription.listener.onMessage(topic, data, packet);
                 }
             });
         });
@@ -188,9 +196,10 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
 
         this._connection.end();
         this._connection = null;
+        this._subscriptions = [];
         this._logger.debug(correlationId, "Disconnected from MQTT broker");
         if (callback) callback(null);
-}
+    }
 
     public getConnection(): any {
         return this._connection;
@@ -205,12 +214,101 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
         return [];
     }
 
-    public addMessageListener(listener: IMqttMessageListener): void {
-        this._messageListeners = this._messageListeners.filter(l => l != listener);
-        this._messageListeners.push(listener);
+    /**
+     * Checks if connection is open
+     * @returns an error is connection is closed or <code>null<code> otherwise.
+     */
+    protected checkOpen(): any {
+        if (this.isOpen()) return null;
+
+        return new InvalidStateException(
+            null,
+            "NOT_OPEN",
+            "Connection was not opened"
+        );
     }
 
-    public removeMessageListener(listener: IMqttMessageListener): void {
-        this._messageListeners = this._messageListeners.filter(l => l != listener);
+    /**
+     * Publish a message to a specified topic
+     * @param topic a topic name
+     * @param data a message to be published
+     * @param options publishing options
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    public publish(topic: string, data: Buffer, options: any, callback?: (err: any) => void): void {
+        // Check for open connection
+        let err = this.checkOpen();
+        if (err) {
+            if (callback) callback(err);
+            return;
+        }
+
+        this._connection.publish(topic, data, options, callback);
+    }
+
+    /**
+     * Subscribe to a topic
+     * @param topic a topic name
+     * @param options subscription options
+     * @param listener a message listener
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    public subscribe(topic: string, options: any, listener: IMqttMessageListener,
+        callback?: (err: any) => void): void {
+        // Check for open connection
+        let err = this.checkOpen();
+        if (err != null) {
+            if (callback) callback(err);
+            return;
+        }
+
+        // Subscribe to topic
+        this._connection.subscribe(topic, options, (err) => {
+            if (err != null) {
+                if (callback) callback(err);
+                return;
+            }
+
+            // Determine if messages shall be filtered (topic without wildcarts)
+            let filter = topic.indexOf("*") < 0;
+
+            // Add the subscription
+            let subscription = <MqttSubscription>{
+                topic: topic,
+                options: options,
+                filter: filter,
+                listener: listener
+            };
+            this._subscriptions.push(subscription);
+            if (callback) callback(null);
+        });
+    }
+
+    /**
+     * Unsubscribe from a previously subscribed topic
+     * @param topic a topic name
+     * @param listener a message listener
+     * @param callback (optional) callback to receive notification on operation result
+     */
+    public unsubscribe(topic: string, listener: IMqttMessageListener, callback?: (err: any) => void): void {
+        // Find the subscription index
+        let index = this._subscriptions.findIndex((s) => s.topic == topic && s.listener == listener);
+        if (index < 0) {
+            if (callback) callback(null);
+            return;
+        }
+
+        // Remove the subscription
+        this._subscriptions.splice(index, 1);
+
+        // Check if there other subscriptions to the same topic
+        index = this._subscriptions.findIndex((s) => s.topic == topic);
+
+        // Unsubscribe from topic if connection is still open
+        if (this._connection != null && index < 0) {
+            this._connection.unsubscribe(topic, callback);
+        } else {
+            if (callback) callback(null);
+        }
     }
 }

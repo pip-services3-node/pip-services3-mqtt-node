@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>IMqttMessageListener | pip-services3-mqtt-node</title>
+	<title>MqttSubscription | pip-services3-mqtt-node</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -54,13 +54,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_connect_imqttmessagelistener_.html">&quot;connect/IMqttMessageListener&quot;</a>
+					<a href="../modules/_connect_mqttsubscription_.html">&quot;connect/MqttSubscription&quot;</a>
 				</li>
 				<li>
-					<a href="_connect_imqttmessagelistener_.imqttmessagelistener.html">IMqttMessageListener</a>
+					<a href="_connect_mqttsubscription_.mqttsubscription.html">MqttSubscription</a>
 				</li>
 			</ul>
-			<h1>Interface IMqttMessageListener</h1>
+			<h1>Class MqttSubscription</h1>
 		</div>
 	</div>
 </header>
@@ -71,7 +71,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">IMqttMessageListener</span>
+						<span class="target">MqttSubscription</span>
 					</li>
 				</ul>
 			</section>
@@ -80,44 +80,58 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Methods</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_connect_imqttmessagelistener_.imqttmessagelistener.html#onmessage" class="tsd-kind-icon">on<wbr>Message</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_connect_mqttsubscription_.mqttsubscription.html#filter" class="tsd-kind-icon">filter</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_connect_mqttsubscription_.mqttsubscription.html#listener" class="tsd-kind-icon">listener</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_connect_mqttsubscription_.mqttsubscription.html#options" class="tsd-kind-icon">options</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_connect_mqttsubscription_.mqttsubscription.html#topic" class="tsd-kind-icon">topic</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
-					<a name="onmessage" class="tsd-anchor"></a>
-					<h3>on<wbr>Message</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-						<li class="tsd-signature tsd-kind-icon">on<wbr>Message<span class="tsd-signature-symbol">(</span>topic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, packet<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in connect/IMqttMessageListener.ts:2</li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>topic: <span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li>
-									<h5>message: <span class="tsd-signature-type">any</span></h5>
-								</li>
-								<li>
-									<h5>packet: <span class="tsd-signature-type">any</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="filter" class="tsd-anchor"></a>
+					<h3>filter</h3>
+					<div class="tsd-signature tsd-kind-icon">filter<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in connect/MqttSubscription.ts:5</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="listener" class="tsd-anchor"></a>
+					<h3>listener</h3>
+					<div class="tsd-signature tsd-kind-icon">listener<span class="tsd-signature-symbol">:</span> <a href="../interfaces/_connect_imqttmessagelistener_.imqttmessagelistener.html" class="tsd-signature-type">IMqttMessageListener</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in connect/MqttSubscription.ts:7</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="options" class="tsd-anchor"></a>
+					<h3>options</h3>
+					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in connect/MqttSubscription.ts:6</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="topic" class="tsd-anchor"></a>
+					<h3>topic</h3>
+					<div class="tsd-signature tsd-kind-icon">topic<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in connect/MqttSubscription.ts:4</li>
+						</ul>
+					</aside>
 				</section>
 			</section>
 		</div>
@@ -127,10 +141,10 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
-					<li class="current tsd-kind-external-module">
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_connect_imqttmessagelistener_.html">"connect/IMqtt<wbr>Message<wbr>Listener"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/_connect_mqttsubscription_.html">"connect/<wbr>Mqtt<wbr>Subscription"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -151,11 +165,20 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_connect_imqttmessagelistener_.imqttmessagelistener.html" class="tsd-kind-icon">IMqtt<wbr>Message<wbr>Listener</a>
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
+						<a href="_connect_mqttsubscription_.mqttsubscription.html" class="tsd-kind-icon">Mqtt<wbr>Subscription</a>
 						<ul>
-							<li class=" tsd-kind-method tsd-parent-kind-interface">
-								<a href="_connect_imqttmessagelistener_.imqttmessagelistener.html#onmessage" class="tsd-kind-icon">on<wbr>Message</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_connect_mqttsubscription_.mqttsubscription.html#filter" class="tsd-kind-icon">filter</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_connect_mqttsubscription_.mqttsubscription.html#listener" class="tsd-kind-icon">listener</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_connect_mqttsubscription_.mqttsubscription.html#options" class="tsd-kind-icon">options</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_connect_mqttsubscription_.mqttsubscription.html#topic" class="tsd-kind-icon">topic</a>
 							</li>
 						</ul>
 					</li>

@@ -6,8 +6,6 @@ exports.MqttMessageQueue = void 0;
 const _ = require('lodash');
 /** @hidden */
 const async = require('async');
-/** @hidden */
-const mqtt = require('mqtt');
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
 const pip_services3_commons_node_2 = require("pip-services3-commons-node");
 const pip_services3_commons_node_3 = require("pip-services3-commons-node");
@@ -35,6 +33,8 @@ const MqttConnection_1 = require("../connect/MqttConnection");
  *   - username:                    user name
  *   - password:                    user password
  * - options:
+ *   - qos:                  (optional) quality of service level aka QOS (default: 0)
+ *   - retain:               (optional) retention flag for published messages (default: false)
  *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
  *   - connect_timeout:      (optional) number of milliseconds to wait for connection (default: 30000)
  *   - reconnect_timeout:    (optional) number of milliseconds to wait on each reconnection attempt (default: 1000)
@@ -101,8 +101,10 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
         config = config.setDefaults(MqttMessageQueue._defaultConfig);
         this._config = config;
         this._dependencyResolver.configure(config);
-        this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop);
         this._topic = config.getAsStringWithDefault("topic", this._topic);
+        this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop);
+        this._qos = config.getAsIntegerWithDefault("options.qos", this._qos);
+        this._retain = config.getAsBooleanWithDefault("options.retain", this._retain);
     }
     /**
      * Sets references to dependent components.
@@ -173,19 +175,16 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
                     callback(err);
                 return;
             }
-            this._client = this._connection.getConnection();
             // Subscribe right away
             let topic = this.getTopic();
-            this._client.subscribe(topic, (err) => {
+            this._connection.subscribe(topic, { qos: this._qos }, this, (err) => {
                 if (err != null) {
-                    this._client = null;
                     this._logger.error(null, err, "Failed to subscribe to topic " + this.getTopic());
                     if (callback)
                         callback(err);
                     return;
                 }
                 this._opened = true;
-                this._connection.addMessageListener(this);
                 if (callback)
                     callback(null);
             });
@@ -224,10 +223,11 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
             return;
         }
         let closeCurl = (err) => {
-            this._connection.removeMessageListener(this);
+            // Unsubscribe from the topic
+            let topic = this.getTopic();
+            this._connection.unsubscribe(topic, this);
             this._messages = [];
             this._opened = false;
-            this._client = null;
             this._receiver = null;
             if (callback)
                 callback(err);
@@ -400,7 +400,8 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
         this._counters.incrementOne("queue." + this.getName() + ".sent_messages");
         this._logger.debug(message.correlation_id, "Sent message %s via %s", message.toString(), this.toString());
         let msg = this.fromMessage(message);
-        this._client.publish(msg.topic, msg.data, callback);
+        let options = { qos: this._qos, retain: this._retain };
+        this._connection.publish(msg.topic, msg.data, options, callback);
     }
     /**
      * Renews a lock on a message that makes it invisible from other receivers in the queue.
@@ -515,5 +516,5 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
     }
 }
 exports.MqttMessageQueue = MqttMessageQueue;
-MqttMessageQueue._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples("topic", null, "options.serialize_envelop", true, "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000);
+MqttMessageQueue._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples("topic", null, "options.serialize_envelop", true, "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000, "options.qos", 0, "options.retain", false);
 //# sourceMappingURL=MqttMessageQueue.js.map

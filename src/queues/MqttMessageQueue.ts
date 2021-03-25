@@ -3,11 +3,7 @@
 const _ = require('lodash');
 /** @hidden */
 const async = require('async');
-/** @hidden */
-const mqtt = require('mqtt');
 
-import { DateTimeConverter } from 'pip-services3-commons-node';
-import { StringConverter } from 'pip-services3-commons-node';
 import { IReferenceable } from 'pip-services3-commons-node';
 import { IUnreferenceable } from 'pip-services3-commons-node';
 import { IReferences } from 'pip-services3-commons-node';
@@ -45,6 +41,8 @@ import { MqttConnection } from '../connect/MqttConnection';
  *   - username:                    user name
  *   - password:                    user password
  * - options:
+ *   - qos:                  (optional) quality of service level aka QOS (default: 0)
+ *   - retain:               (optional) retention flag for published messages (default: false)
  *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
  *   - connect_timeout:      (optional) number of milliseconds to wait for connection (default: 30000)
  *   - reconnect_timeout:    (optional) number of milliseconds to wait on each reconnection attempt (default: 1000)
@@ -93,7 +91,9 @@ export class MqttMessageQueue extends MessageQueue
         "options.retry_connect", true,
         "options.connect_timeout", 30000,
         "options.reconnect_timeout", 1000,
-        "options.keepalive_timeout", 60000
+        "options.keepalive_timeout", 60000,
+        "options.qos", 0,
+        "options.retain", false
     );
 
     private _config: ConfigParams;
@@ -115,15 +115,12 @@ export class MqttMessageQueue extends MessageQueue
      */
     protected _connection: MqttConnection;
 
-    /**
-     * The MQTT connection pool object.
-     */
-    protected _client: any;
-
     protected _serializeEnvelop: boolean;
     protected _topic: string;
-    private _messages: MessageEnvelope[] = [];
-    private _receiver: IMessageReceiver;
+    protected _qos: number;
+    protected _retain: boolean;
+    protected _messages: MessageEnvelope[] = [];
+    protected _receiver: IMessageReceiver;
 
     /**
      * Creates a new instance of the persistence component.
@@ -145,8 +142,10 @@ export class MqttMessageQueue extends MessageQueue
 
         this._dependencyResolver.configure(config);
 
-        this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop)
         this._topic = config.getAsStringWithDefault("topic", this._topic);
+        this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop);
+        this._qos = config.getAsIntegerWithDefault("options.qos", this._qos);
+        this._retain = config.getAsBooleanWithDefault("options.retain", this._retain);
     }
 
     /**
@@ -229,20 +228,16 @@ export class MqttMessageQueue extends MessageQueue
                 return;
             }
 
-            this._client = this._connection.getConnection();
-
             // Subscribe right away
             let topic = this.getTopic();
-            this._client.subscribe(topic, (err) => {
+            this._connection.subscribe(topic, { qos: this._qos }, this, (err) => {
                 if (err != null) {
-                    this._client = null;
                     this._logger.error(null, err, "Failed to subscribe to topic " + this.getTopic());
                     if (callback) callback(err);
                     return;
                 }
 
                 this._opened = true;        
-                this._connection.addMessageListener(this);
 
                 if (callback) callback(null);
             });    
@@ -287,11 +282,12 @@ export class MqttMessageQueue extends MessageQueue
         }
         
         let closeCurl = (err) => {
-            this._connection.removeMessageListener(this);
+            // Unsubscribe from the topic
+            let topic = this.getTopic();
+            this._connection.unsubscribe(topic, this);
 
             this._messages = [];
             this._opened = false;
-            this._client = null;
             this._receiver = null;
 
             if (callback) callback(err);
@@ -491,7 +487,8 @@ export class MqttMessageQueue extends MessageQueue
         this._logger.debug(message.correlation_id, "Sent message %s via %s", message.toString(), this.toString());
 
         let msg = this.fromMessage(message);
-        this._client.publish(msg.topic, msg.data, callback);
+        let options = { qos: this._qos, retain: this._retain };
+        this._connection.publish(msg.topic, msg.data, options, callback);
     }
 
     /**
