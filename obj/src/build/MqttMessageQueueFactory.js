@@ -20,14 +20,7 @@ class MqttMessageQueueFactory extends pip_services3_components_node_1.Factory {
         super();
         this.register(MqttMessageQueueFactory.MqttQueueDescriptor, (locator) => {
             let name = (typeof locator.getName === "function") ? locator.getName() : null;
-            let queue = new MqttMessageQueue_1.MqttMessageQueue(name);
-            if (this._config != null) {
-                queue.configure(this._config);
-            }
-            if (this._references != null) {
-                queue.setReferences(this._references);
-            }
-            return queue;
+            return this.createQueue(name);
         });
     }
     /**
@@ -45,6 +38,20 @@ class MqttMessageQueueFactory extends pip_services3_components_node_1.Factory {
      */
     setReferences(references) {
         this._references = references;
+    }
+    /**
+     * Creates a message queue component and assigns its name.
+     * @param name a name of the created message queue.
+     */
+    createQueue(name) {
+        let queue = new MqttMessageQueue_1.MqttMessageQueue(name);
+        if (this._config != null) {
+            queue.configure(this._config);
+        }
+        if (this._references != null) {
+            queue.setReferences(this._references);
+        }
+        return queue;
     }
 }
 exports.MqttMessageQueueFactory = MqttMessageQueueFactory;

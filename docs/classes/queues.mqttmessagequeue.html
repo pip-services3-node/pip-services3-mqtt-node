@@ -90,6 +90,7 @@
 							</ul>
 						</li>
 						<li>options:<ul>
+								<li>serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)</li>
 								<li>qos:                  (optional) quality of service level aka QOS (default: 0)</li>
 								<li>retain:               (optional) retention flag for published messages (default: false)</li>
 								<li>retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)</li>
@@ -105,7 +106,7 @@
 						<li><code>*:counters:*:*:1.0</code>           (optional) <a href="https://pip-services3-node.github.io/pip-services3-components-node/interfaces/count.icounters.html" class="external">ICounters</a> components to pass collected measurements</li>
 						<li><code>*:discovery:*:*:1.0</code>          (optional) <a href="https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html" class="external">IDiscovery</a> services to resolve connections</li>
 						<li><code>*:credential-store:*:*:1.0</code>   (optional) Credential stores to resolve credentials</li>
-						<li><code>*:connection:nats:*:1.0</code>       (optional) Shared connection to MQTT service</li>
+						<li><code>*:connection:mqtt:*:1.0</code>       (optional) Shared connection to MQTT service</li>
 					</ul>
 					<dl class="tsd-comment-tags">
 						<dt>see</dt>
@@ -206,7 +207,6 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttmessagequeue.html#movetodeadletter" class="tsd-kind-icon">move<wbr>ToDead<wbr>Letter</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttmessagequeue.html#onmessage" class="tsd-kind-icon">on<wbr>Message</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttmessagequeue.html#open" class="tsd-kind-icon">open</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><a href="queues.mqttmessagequeue.html#openwithparams" class="tsd-kind-icon">open<wbr>With<wbr>Params</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttmessagequeue.html#peek" class="tsd-kind-icon">peek</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttmessagequeue.html#peekbatch" class="tsd-kind-icon">peek<wbr>Batch</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttmessagequeue.html#readmessagecount" class="tsd-kind-icon">read<wbr>Message<wbr>Count</a></li>
@@ -233,7 +233,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:123</li>
+									<li>Defined in queues/MqttMessageQueue.ts:124</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -265,7 +265,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_connection<span class="tsd-signature-symbol">:</span> <a href="queues.mqttconnection.html" class="tsd-signature-type">MqttConnection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:116</li>
+							<li>Defined in queues/MqttMessageQueue.ts:117</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -280,7 +280,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_dependency<wbr>Resolver<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">DependencyResolver</span><span class="tsd-signature-symbol"> =&nbsp;new DependencyResolver(MqttMessageQueue._defaultConfig)</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:107</li>
+							<li>Defined in queues/MqttMessageQueue.ts:108</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -295,7 +295,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_logger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">CompositeLogger</span><span class="tsd-signature-symbol"> =&nbsp;new CompositeLogger()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:111</li>
+							<li>Defined in queues/MqttMessageQueue.ts:112</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -310,7 +310,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_messages<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">MessageEnvelope</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:122</li>
+							<li>Defined in queues/MqttMessageQueue.ts:123</li>
 						</ul>
 					</aside>
 				</section>
@@ -320,7 +320,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_qos<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:120</li>
+							<li>Defined in queues/MqttMessageQueue.ts:121</li>
 						</ul>
 					</aside>
 				</section>
@@ -330,7 +330,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_receiver<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">IMessageReceiver</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:123</li>
+							<li>Defined in queues/MqttMessageQueue.ts:124</li>
 						</ul>
 					</aside>
 				</section>
@@ -340,7 +340,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_retain<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:121</li>
+							<li>Defined in queues/MqttMessageQueue.ts:122</li>
 						</ul>
 					</aside>
 				</section>
@@ -350,7 +350,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_serialize<wbr>Envelop<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:118</li>
+							<li>Defined in queues/MqttMessageQueue.ts:119</li>
 						</ul>
 					</aside>
 				</section>
@@ -360,7 +360,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 					<div class="tsd-signature tsd-kind-icon">_topic<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in queues/MqttMessageQueue.ts:119</li>
+							<li>Defined in queues/MqttMessageQueue.ts:120</li>
 						</ul>
 					</aside>
 				</section>
@@ -377,7 +377,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:534</li>
+									<li>Defined in queues/MqttMessageQueue.ts:521</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -436,7 +436,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:370</li>
+									<li>Defined in queues/MqttMessageQueue.ts:357</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -491,7 +491,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:273</li>
+									<li>Defined in queues/MqttMessageQueue.ts:260</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -546,7 +546,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:518</li>
+									<li>Defined in queues/MqttMessageQueue.ts:505</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -603,7 +603,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:139</li>
+									<li>Defined in queues/MqttMessageQueue.ts:140</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -634,7 +634,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:610</li>
+									<li>Defined in queues/MqttMessageQueue.ts:596</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -666,7 +666,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:307</li>
+									<li>Defined in queues/MqttMessageQueue.ts:294</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -689,7 +689,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:303</li>
+									<li>Defined in queues/MqttMessageQueue.ts:290</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -706,7 +706,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:196</li>
+									<li>Defined in queues/MqttMessageQueue.ts:197</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -729,7 +729,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:579</li>
+									<li>Defined in queues/MqttMessageQueue.ts:566</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -774,7 +774,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:547</li>
+									<li>Defined in queues/MqttMessageQueue.ts:534</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -830,7 +830,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:339</li>
+									<li>Defined in queues/MqttMessageQueue.ts:326</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -859,7 +859,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:206</li>
+									<li>Defined in queues/MqttMessageQueue.ts:207</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -904,70 +904,6 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-protected">
-					<a name="openwithparams" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> open<wbr>With<wbr>Params</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-protected">
-						<li class="tsd-signature tsd-kind-icon">open<wbr>With<wbr>Params<span class="tsd-signature-symbol">(</span>correlationId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, connections<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ConnectionParams</span><span class="tsd-signature-symbol">[]</span>, credential<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">CredentialParams</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:261</li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Opens the component with given connection and credential parameters.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>correlationId: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>(optional) transaction id to trace execution through call chain.</p>
-									</div>
-								</li>
-								<li>
-									<h5>connections: <span class="tsd-signature-type">ConnectionParams</span><span class="tsd-signature-symbol">[]</span></h5>
-								</li>
-								<li>
-									<h5>credential: <span class="tsd-signature-type">CredentialParams</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>credential parameters</p>
-									</div>
-								</li>
-								<li>
-									<h5>callback: <span class="tsd-signature-type">function</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>callback function that receives error or null no errors occured.</p>
-									</div>
-									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>err<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-											</ul>
-											<ul class="tsd-descriptions">
-												<li class="tsd-description">
-													<h4 class="tsd-parameters-title">Parameters</h4>
-													<ul class="tsd-parameters">
-														<li>
-															<h5>err: <span class="tsd-signature-type">any</span></h5>
-														</li>
-													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-												</li>
-											</ul>
-										</li>
-									</ul>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="peek" class="tsd-anchor"></a>
 					<h3>peek</h3>
@@ -978,7 +914,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:391</li>
+									<li>Defined in queues/MqttMessageQueue.ts:378</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1037,7 +973,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:420</li>
+									<li>Defined in queues/MqttMessageQueue.ts:407</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1103,7 +1039,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:380</li>
+									<li>Defined in queues/MqttMessageQueue.ts:367</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1155,7 +1091,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:441</li>
+									<li>Defined in queues/MqttMessageQueue.ts:428</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1219,7 +1155,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:504</li>
+									<li>Defined in queues/MqttMessageQueue.ts:491</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1282,7 +1218,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:479</li>
+									<li>Defined in queues/MqttMessageQueue.ts:466</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1343,7 +1279,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:156</li>
+									<li>Defined in queues/MqttMessageQueue.ts:157</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1374,7 +1310,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:322</li>
+									<li>Defined in queues/MqttMessageQueue.ts:309</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1403,7 +1339,7 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in queues/MqttMessageQueue.ts:175</li>
+									<li>Defined in queues/MqttMessageQueue.ts:176</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1521,9 +1457,6 @@ queue.receive(<span class="hljs-string">"123"</span>, (err, message) =&gt; {
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="queues.mqttmessagequeue.html#open" class="tsd-kind-icon">open</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-protected">
-								<a href="queues.mqttmessagequeue.html#openwithparams" class="tsd-kind-icon">open<wbr>With<wbr>Params</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="queues.mqttmessagequeue.html#peek" class="tsd-kind-icon">peek</a>

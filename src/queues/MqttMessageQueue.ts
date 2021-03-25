@@ -41,6 +41,7 @@ import { MqttConnection } from '../connect/MqttConnection';
  *   - username:                    user name
  *   - password:                    user password
  * - options:
+ *   - serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
  *   - qos:                  (optional) quality of service level aka QOS (default: 0)
  *   - retain:               (optional) retention flag for published messages (default: false)
  *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
@@ -54,7 +55,7 @@ import { MqttConnection } from '../connect/MqttConnection';
  * - <code>\*:counters:\*:\*:1.0</code>           (optional) [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/count.icounters.html ICounters]] components to pass collected measurements
  * - <code>\*:discovery:\*:\*:1.0</code>          (optional) [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]] services to resolve connections
  * - <code>\*:credential-store:\*:\*:1.0</code>   (optional) Credential stores to resolve credentials
- * - <code>\*:connection:nats:\*:1.0</code>       (optional) Shared connection to MQTT service
+ * - <code>\*:connection:mqtt:\*:1.0</code>       (optional) Shared connection to MQTT service
  * 
  * @see [[MessageQueue]]
  * @see [[MessagingCapabilities]]
@@ -232,7 +233,7 @@ export class MqttMessageQueue extends MessageQueue
             let topic = this.getTopic();
             this._connection.subscribe(topic, { qos: this._qos }, this, (err) => {
                 if (err != null) {
-                    this._logger.error(null, err, "Failed to subscribe to topic " + this.getTopic());
+                    this._logger.error(correlationId, err, "Failed to subscribe to topic " + topic);
                     if (callback) callback(err);
                     return;
                 }
@@ -249,20 +250,6 @@ export class MqttMessageQueue extends MessageQueue
             openCurl(null);
         }
     }
-
-    /**
-     * Opens the component with given connection and credential parameters.
-     * 
-     * @param correlationId     (optional) transaction id to trace execution through call chain.
-     * @param connection        connection parameters
-     * @param credential        credential parameters
-     * @param callback 			callback function that receives error or null no errors occured.
-     */
-    protected openWithParams(correlationId: string,
-        connections: ConnectionParams[], credential: CredentialParams,
-        callback: (err: any) => void): void {
-        throw new Error("Not supported");
-    }    
 
     /**
 	 * Closes component and frees used resources.
@@ -598,7 +585,6 @@ export class MqttMessageQueue extends MessageQueue
                 }
             }
         );
-
     }
 
     /**

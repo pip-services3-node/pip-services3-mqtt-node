@@ -15,7 +15,6 @@ import { InvalidStateException } from 'pip-services3-commons-node';
 import { MqttConnectionResolver } from '../connect/MqttConnectionResolver';
 import { IMqttMessageListener } from './IMqttMessageListener';
 import { MqttSubscription } from './MqttSubscription';
-import { callbackify } from 'node:util';
 
 /**
  * Connection to MQTT message broker.
@@ -24,7 +23,6 @@ import { callbackify } from 'node:util';
  * 
  * ### Configuration parameters ###
  * 
- * - topic:                         name of MQTT topic to subscribe
  * - connection(s):
  *   - discovery_key:               (optional) a key to retrieve the connection from [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]]
  *   - host:                        host name or IP address

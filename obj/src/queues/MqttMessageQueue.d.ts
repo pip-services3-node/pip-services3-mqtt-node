@@ -9,8 +9,6 @@ import { DependencyResolver } from 'pip-services3-commons-node';
 import { CompositeLogger } from 'pip-services3-components-node';
 import { IMessageReceiver, MessageQueue } from 'pip-services3-messaging-node';
 import { MessageEnvelope } from 'pip-services3-messaging-node';
-import { ConnectionParams } from 'pip-services3-components-node';
-import { CredentialParams } from 'pip-services3-components-node';
 import { MqttConnection } from '../connect/MqttConnection';
 /**
  * Message queue that sends and receives messages via MQTT message broker.
@@ -30,6 +28,7 @@ import { MqttConnection } from '../connect/MqttConnection';
  *   - username:                    user name
  *   - password:                    user password
  * - options:
+ *   - serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
  *   - qos:                  (optional) quality of service level aka QOS (default: 0)
  *   - retain:               (optional) retention flag for published messages (default: false)
  *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
@@ -43,7 +42,7 @@ import { MqttConnection } from '../connect/MqttConnection';
  * - <code>\*:counters:\*:\*:1.0</code>           (optional) [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/count.icounters.html ICounters]] components to pass collected measurements
  * - <code>\*:discovery:\*:\*:1.0</code>          (optional) [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]] services to resolve connections
  * - <code>\*:credential-store:\*:\*:1.0</code>   (optional) Credential stores to resolve credentials
- * - <code>\*:connection:nats:\*:1.0</code>       (optional) Shared connection to MQTT service
+ * - <code>\*:connection:mqtt:\*:1.0</code>       (optional) Shared connection to MQTT service
  *
  * @see [[MessageQueue]]
  * @see [[MessagingCapabilities]]
@@ -131,15 +130,6 @@ export declare class MqttMessageQueue extends MessageQueue implements IReference
      * @param callback 			callback function that receives error or null no errors occured.
      */
     open(correlationId: string, callback?: (err: any) => void): void;
-    /**
-     * Opens the component with given connection and credential parameters.
-     *
-     * @param correlationId     (optional) transaction id to trace execution through call chain.
-     * @param connection        connection parameters
-     * @param credential        credential parameters
-     * @param callback 			callback function that receives error or null no errors occured.
-     */
-    protected openWithParams(correlationId: string, connections: ConnectionParams[], credential: CredentialParams, callback: (err: any) => void): void;
     /**
      * Closes component and frees used resources.
      *

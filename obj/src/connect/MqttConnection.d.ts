@@ -16,7 +16,6 @@ import { MqttSubscription } from './MqttSubscription';
  *
  * ### Configuration parameters ###
  *
- * - topic:                         name of MQTT topic to subscribe
  * - connection(s):
  *   - discovery_key:               (optional) a key to retrieve the connection from [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]]
  *   - host:                        host name or IP address
