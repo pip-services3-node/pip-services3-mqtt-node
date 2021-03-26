@@ -12,7 +12,7 @@ suite('MqttMessageQueue', () => {
     let brokerTopic = process.env['MQTT_TOPIC'] || 'test';
     if (brokerHost == '' && brokerPort == '')
         return;
-    let queueConfig = pip_services3_commons_node_1.ConfigParams.fromTuples('topic', brokerTopic, 'connection.protocol', 'mqtt', 'connection.host', brokerHost, 'connection.port', brokerPort);
+    let queueConfig = pip_services3_commons_node_1.ConfigParams.fromTuples('topic', brokerTopic, 'connection.protocol', 'mqtt', 'connection.host', brokerHost, 'connection.port', brokerPort, 'options.autosubscribe', true);
     setup((done) => {
         queue = new MqttMessageQueue_1.MqttMessageQueue();
         queue.configure(queueConfig);

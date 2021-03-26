@@ -75,6 +75,7 @@
 					<p>MQTT is a popular light-weight protocol to communicate IoT devices.</p>
 					<h3 id="configuration-parameters">Configuration parameters</h3>
 					<ul>
+						<li>client_id:               (optional) name of the client id</li>
 						<li>connection(s):<ul>
 								<li>discovery_key:               (optional) a key to retrieve the connection from <a href="https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html" class="external">IDiscovery</a></li>
 								<li>host:                        host name or IP address</li>
@@ -143,6 +144,7 @@
 						<section class="tsd-index-section tsd-is-private-protected">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="queues.mqttconnection.html#_clientid" class="tsd-kind-icon">_client<wbr>Id</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="queues.mqttconnection.html#_connecttimeout" class="tsd-kind-icon">_connect<wbr>Timeout</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="queues.mqttconnection.html#_connection" class="tsd-kind-icon">_connection</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="queues.mqttconnection.html#_connectionresolver" class="tsd-kind-icon">_connection<wbr>Resolver</a></li>
@@ -160,6 +162,8 @@
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><a href="queues.mqttconnection.html#checkopen" class="tsd-kind-icon">check<wbr>Open</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttconnection.html#close" class="tsd-kind-icon">close</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttconnection.html#configure" class="tsd-kind-icon">configure</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttconnection.html#createqueue" class="tsd-kind-icon">create<wbr>Queue</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttconnection.html#deletequeue" class="tsd-kind-icon">delete<wbr>Queue</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttconnection.html#getconnection" class="tsd-kind-icon">get<wbr>Connection</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttconnection.html#isopen" class="tsd-kind-icon">is<wbr>Open</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="queues.mqttconnection.html#open" class="tsd-kind-icon">open</a></li>
@@ -185,7 +189,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in connect/MqttConnection.ts:89</li>
+									<li>Defined in connect/MqttConnection.ts:94</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -201,12 +205,22 @@
 			<section class="tsd-panel-group tsd-member-group tsd-is-private-protected">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+					<a name="_clientid" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _client<wbr>Id</h3>
+					<div class="tsd-signature tsd-kind-icon">_client<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;os.hostname()</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in connect/MqttConnection.ts:90</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
 					<a name="_connecttimeout" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _connect<wbr>Timeout</h3>
 					<div class="tsd-signature tsd-kind-icon">_connect<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;30000</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:87</li>
+							<li>Defined in connect/MqttConnection.ts:92</li>
 						</ul>
 					</aside>
 				</section>
@@ -216,7 +230,7 @@
 					<div class="tsd-signature tsd-kind-icon">_connection<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:79</li>
+							<li>Defined in connect/MqttConnection.ts:83</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -231,7 +245,7 @@
 					<div class="tsd-signature tsd-kind-icon">_connection<wbr>Resolver<span class="tsd-signature-symbol">:</span> <a href="connect.mqttconnectionresolver.html" class="tsd-signature-type">MqttConnectionResolver</a><span class="tsd-signature-symbol"> =&nbsp;new MqttConnectionResolver()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:70</li>
+							<li>Defined in connect/MqttConnection.ts:74</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -246,7 +260,7 @@
 					<div class="tsd-signature tsd-kind-icon">_keep<wbr>Alive<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;60000</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:88</li>
+							<li>Defined in connect/MqttConnection.ts:93</li>
 						</ul>
 					</aside>
 				</section>
@@ -256,7 +270,7 @@
 					<div class="tsd-signature tsd-kind-icon">_logger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">CompositeLogger</span><span class="tsd-signature-symbol"> =&nbsp;new CompositeLogger()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:66</li>
+							<li>Defined in connect/MqttConnection.ts:70</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -271,7 +285,7 @@
 					<div class="tsd-signature tsd-kind-icon">_options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ConfigParams</span><span class="tsd-signature-symbol"> =&nbsp;new ConfigParams()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:74</li>
+							<li>Defined in connect/MqttConnection.ts:78</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -286,7 +300,7 @@
 					<div class="tsd-signature tsd-kind-icon">_reconnect<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1000</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:89</li>
+							<li>Defined in connect/MqttConnection.ts:94</li>
 						</ul>
 					</aside>
 				</section>
@@ -296,7 +310,7 @@
 					<div class="tsd-signature tsd-kind-icon">_retry<wbr>Connect<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:86</li>
+							<li>Defined in connect/MqttConnection.ts:91</li>
 						</ul>
 					</aside>
 				</section>
@@ -306,7 +320,7 @@
 					<div class="tsd-signature tsd-kind-icon">_subscriptions<span class="tsd-signature-symbol">:</span> <a href="_connect_mqttsubscription_.mqttsubscription.html" class="tsd-signature-type">MqttSubscription</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in connect/MqttConnection.ts:84</li>
+							<li>Defined in connect/MqttConnection.ts:88</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -328,7 +342,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in connect/MqttConnection.ts:219</li>
+									<li>Defined in connect/MqttConnection.ts:246</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -356,7 +370,7 @@
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:189</li>
+                    <li>Defined in connect/MqttConnection.ts:196</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -434,7 +448,7 @@
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:101</li>
+                    <li>Defined in connect/MqttConnection.ts:106</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -466,6 +480,164 @@
 
 </section>
             <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+    <a name="createqueue" class="tsd-anchor"></a>
+        <h3>create<wbr>Queue</h3>
+
+        <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+        <li class="tsd-signature tsd-kind-icon">create<wbr>Queue<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+</ul>
+
+<ul class="tsd-descriptions">
+        <li class="tsd-description">
+                <aside class="tsd-sources">
+        <ul>
+                    <li>Defined in connect/MqttConnection.ts:228</li>
+        </ul>
+</aside>
+        <div class="tsd-comment tsd-typography">
+                <div class="lead">
+                    <p>Creates a message queue.
+If connection doesn&#39;t support this function it exists without error.</p>
+
+                </div>
+        </div>
+
+
+    <h4 class="tsd-parameters-title">Parameters</h4>
+    <ul class="tsd-parameters">
+            <li>
+                <h5>name: <span class="tsd-signature-type">string</span></h5>
+
+                        <div class="tsd-comment tsd-typography">
+                <p>the name of the queue to be created.</p>
+
+        </div>
+
+            </li>
+            <li>
+                <h5>callback: <span class="tsd-signature-type">function</span></h5>
+
+                        <div class="tsd-comment tsd-typography">
+                <p>notifies about completion with error or null for success.</p>
+
+        </div>
+
+                        <ul class="tsd-parameters">
+        <li class="tsd-parameter-siganture">
+            <ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+                    <li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>err<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+            </ul>
+
+            <ul class="tsd-descriptions">
+                    <li class="tsd-description">
+
+
+    <h4 class="tsd-parameters-title">Parameters</h4>
+    <ul class="tsd-parameters">
+            <li>
+                <h5>err: <span class="tsd-signature-type">any</span></h5>
+
+                
+            </li>
+    </ul>
+
+    <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+
+
+</li>
+            </ul>
+        </li>
+</ul>
+            </li>
+    </ul>
+
+    <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+
+
+        </li>
+</ul>    
+
+</section>
+            <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+    <a name="deletequeue" class="tsd-anchor"></a>
+        <h3>delete<wbr>Queue</h3>
+
+        <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+        <li class="tsd-signature tsd-kind-icon">delete<wbr>Queue<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+</ul>
+
+<ul class="tsd-descriptions">
+        <li class="tsd-description">
+                <aside class="tsd-sources">
+        <ul>
+                    <li>Defined in connect/MqttConnection.ts:238</li>
+        </ul>
+</aside>
+        <div class="tsd-comment tsd-typography">
+                <div class="lead">
+                    <p>Deletes a message queue.
+If connection doesn&#39;t support this function it exists without error.</p>
+
+                </div>
+        </div>
+
+
+    <h4 class="tsd-parameters-title">Parameters</h4>
+    <ul class="tsd-parameters">
+            <li>
+                <h5>name: <span class="tsd-signature-type">string</span></h5>
+
+                        <div class="tsd-comment tsd-typography">
+                <p>the name of the queue to be deleted.</p>
+
+        </div>
+
+            </li>
+            <li>
+                <h5>callback: <span class="tsd-signature-type">function</span></h5>
+
+                        <div class="tsd-comment tsd-typography">
+                <p>notifies about completion with error or null for success.</p>
+
+        </div>
+
+                        <ul class="tsd-parameters">
+        <li class="tsd-parameter-siganture">
+            <ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+                    <li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>err<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+            </ul>
+
+            <ul class="tsd-descriptions">
+                    <li class="tsd-description">
+
+
+    <h4 class="tsd-parameters-title">Parameters</h4>
+    <ul class="tsd-parameters">
+            <li>
+                <h5>err: <span class="tsd-signature-type">any</span></h5>
+
+                
+            </li>
+    </ul>
+
+    <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+
+
+</li>
+            </ul>
+        </li>
+</ul>
+            </li>
+    </ul>
+
+    <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+
+
+        </li>
+</ul>    
+
+</section>
+            <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
     <a name="getconnection" class="tsd-anchor"></a>
         <h3>get<wbr>Connection</h3>
 
@@ -477,7 +649,7 @@
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:202</li>
+                    <li>Defined in connect/MqttConnection.ts:209</li>
         </ul>
 </aside>
 
@@ -502,7 +674,7 @@
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:127</li>
+                    <li>Defined in connect/MqttConnection.ts:133</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -535,7 +707,7 @@
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:137</li>
+                    <li>Defined in connect/MqttConnection.ts:143</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -613,7 +785,7 @@
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:236</li>
+                    <li>Defined in connect/MqttConnection.ts:263</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -709,7 +881,7 @@
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:211</li>
+                    <li>Defined in connect/MqttConnection.ts:218</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -785,7 +957,7 @@ If connection doesn&#39;t support this function returnes an empty list.</p>
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:117</li>
+                    <li>Defined in connect/MqttConnection.ts:123</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -828,7 +1000,7 @@ If connection doesn&#39;t support this function returnes an empty list.</p>
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:254</li>
+                    <li>Defined in connect/MqttConnection.ts:281</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -924,7 +1096,7 @@ If connection doesn&#39;t support this function returnes an empty list.</p>
         <li class="tsd-description">
                 <aside class="tsd-sources">
         <ul>
-                    <li>Defined in connect/MqttConnection.ts:291</li>
+                    <li>Defined in connect/MqttConnection.ts:318</li>
         </ul>
 </aside>
         <div class="tsd-comment tsd-typography">
@@ -1040,6 +1212,9 @@ If connection doesn&#39;t support this function returnes an empty list.</p>
     <a href="queues.mqttconnection.html#constructor" class="tsd-kind-icon">constructor</a>
 </li>
                 <li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+    <a href="queues.mqttconnection.html#_clientid" class="tsd-kind-icon">_client<wbr>Id</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
     <a href="queues.mqttconnection.html#_connecttimeout" class="tsd-kind-icon">_connect<wbr>Timeout</a>
 </li>
                 <li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
@@ -1074,6 +1249,12 @@ If connection doesn&#39;t support this function returnes an empty list.</p>
 </li>
                 <li class=" tsd-kind-method tsd-parent-kind-class">
     <a href="queues.mqttconnection.html#configure" class="tsd-kind-icon">configure</a>
+</li>
+                <li class=" tsd-kind-method tsd-parent-kind-class">
+    <a href="queues.mqttconnection.html#createqueue" class="tsd-kind-icon">create<wbr>Queue</a>
+</li>
+                <li class=" tsd-kind-method tsd-parent-kind-class">
+    <a href="queues.mqttconnection.html#deletequeue" class="tsd-kind-icon">delete<wbr>Queue</a>
 </li>
                 <li class=" tsd-kind-method tsd-parent-kind-class">
     <a href="queues.mqttconnection.html#getconnection" class="tsd-kind-icon">get<wbr>Connection</a>

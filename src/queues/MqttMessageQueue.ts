@@ -121,7 +121,7 @@ export class MqttMessageQueue extends MessageQueue
     protected _qos: number;
     protected _retain: boolean;
     protected _autoSubscribe: boolean;
-    protected _subscribe: boolean;
+    protected _subscribed: boolean;
     protected _messages: MessageEnvelope[] = [];
     protected _receiver: IMessageReceiver;
 
@@ -233,18 +233,16 @@ export class MqttMessageQueue extends MessageQueue
             }
 
             // Subscribe right away
-            let topic = this.getTopic();
-            this._connection.subscribe(topic, { qos: this._qos }, this, (err) => {
-                if (err != null) {
-                    this._logger.error(correlationId, err, "Failed to subscribe to topic " + topic);
+            if (this._autoSubscribe) {
+                this.subscribe(correlationId, (err) => {
+                    if (err == null) {
+                        this._opened = true;        
+                    }
                     if (callback) callback(err);
-                    return;
-                }
-
-                this._opened = true;        
-
+                });
+            } else {
                 if (callback) callback(null);
-            });    
+            }
         };
 
         if (this._localConnection) {
@@ -272,9 +270,11 @@ export class MqttMessageQueue extends MessageQueue
         }
         
         let closeCurl = (err) => {
-            // Unsubscribe from the topic
-            let topic = this.getTopic();
-            this._connection.unsubscribe(topic, this);
+            if (this._subscribed) {
+                // Unsubscribe from the topic
+                let topic = this.getTopic();
+                this._connection.unsubscribe(topic, this);
+            }
 
             this._messages = [];
             this._opened = false;
@@ -292,6 +292,24 @@ export class MqttMessageQueue extends MessageQueue
 
     protected getTopic(): string {
         return this._topic != null && this._topic != "" ? this._topic : this.getName();
+    }
+
+    protected subscribe(correlationId: string, callback: (err: any) => void): void {
+        if (this._subscribed) {
+            if (callback) callback(null);
+            return;
+        }
+
+        // Subscribe right away
+        let topic = this.getTopic();
+        this._connection.subscribe(topic, { qos: this._qos }, this, (err) => {
+            if (err != null) {
+                this._logger.error(correlationId, err, "Failed to subscribe to topic " + topic);
+            } else {
+                this._subscribed = true;
+            }
+            if (callback) callback(err);
+        });
     }
 
     protected fromMessage(message: MessageEnvelope): any {
@@ -385,16 +403,25 @@ export class MqttMessageQueue extends MessageQueue
             return;
         }
 
-        let message: MessageEnvelope = null;
-        if (this._messages.length > 0) {
-            message = this._messages[0];
-        }
+        // Subscribe to topic if needed
+        this.subscribe(correlationId, (err) => {
+            if (err != null) {
+                callback(err, null);
+                return;
+            } 
 
-        if (message != null) {
-    		this._logger.trace(message.correlation_id, "Peeked message %s on %s", message, this.getName());
-        }
-
-        callback(null, message);
+            // Peek a message from the top
+            let message: MessageEnvelope = null;
+            if (this._messages.length > 0) {
+                message = this._messages[0];
+            }
+    
+            if (message != null) {
+                this._logger.trace(message.correlation_id, "Peeked message %s on %s", message, this.getName());
+            }
+    
+            callback(null, message);
+        });
     }
 
     /**
@@ -414,11 +441,20 @@ export class MqttMessageQueue extends MessageQueue
             return;
         }
 
-        let messages = this._messages.slice(0, messageCount);
+        // Subscribe to topic if needed
+        this.subscribe(correlationId, (err) => {
+            if (err != null) {
+                callback(err, null);
+                return;
+            } 
 
-        this._logger.trace(correlationId, "Peeked %d messages on %s", messages.length, this.getName());
+            // Peek a batch of messages
+            let messages = this._messages.slice(0, messageCount);
 
-        callback(null, messages);
+            this._logger.trace(correlationId, "Peeked %d messages on %s", messages.length, this.getName());
+    
+            callback(null, messages);
+        });
     }
 
     /**
@@ -429,34 +465,48 @@ export class MqttMessageQueue extends MessageQueue
      * @param callback          callback function that receives a message or error.
      */
     public receive(correlationId: string, waitTimeout: number, callback: (err: any, result: MessageEnvelope) => void): void {
-        let message: MessageEnvelope = null;
-
-        // Return message immediately if it exist
-        if (this._messages.length > 0) {
-            message = this._messages.shift();
-            callback(null, message);
+        let err = this.checkOpen(correlationId);
+        if (err != null) {
+            callback(err, null);
             return;
         }
 
-        // Otherwise wait and return
-        let checkInterval = 100;
-        let elapsedTime = 0;
-        async.whilst(
-            () => {
-                return this.isOpen() && elapsedTime < waitTimeout && message == null;
-            },
-            (whilstCallback) => {
-                elapsedTime += checkInterval;
+        // Subscribe to topic if needed
+        this.subscribe(correlationId, (err) => {
+            if (err != null) {
+                callback(err, null);
+                return;
+            } 
 
-                setTimeout(() => {
-                    message = this._messages.shift();
-                    whilstCallback();
-                }, checkInterval);
-            },
-            (err) => {
-                callback(err, message);
+            let message: MessageEnvelope = null;
+
+            // Return message immediately if it exist
+            if (this._messages.length > 0) {
+                message = this._messages.shift();
+                callback(null, message);
+                return;
             }
-        );
+    
+            // Otherwise wait and return
+            let checkInterval = 100;
+            let elapsedTime = 0;
+            async.whilst(
+                () => {
+                    return this.isOpen() && elapsedTime < waitTimeout && message == null;
+                },
+                (whilstCallback) => {
+                    elapsedTime += checkInterval;
+    
+                    setTimeout(() => {
+                        message = this._messages.shift();
+                        whilstCallback();
+                    }, checkInterval);
+                },
+                (err) => {
+                    callback(err, message);
+                }
+            );
+        });
     }
 
     /**
@@ -567,27 +617,39 @@ export class MqttMessageQueue extends MessageQueue
      * @see [[receive]]
      */
       public listen(correlationId: string, receiver: IMessageReceiver): void {
-        this._logger.trace(null, "Started listening messages at %s", this.getName());
+        let err = this.checkOpen(correlationId);
+        if (err != null) {
+            return;
+        }
 
-        // Resend collected messages to receiver
-        async.whilst(
-            () => {
-                return this.isOpen() && this._messages.length > 0;
-            },
-            (whilstCallback) => {
-                let message = this._messages.shift();
-                if (message != null) {
-                    this.sendMessageToReceiver(receiver, message);
+        // Subscribe to topic if needed
+        this.subscribe(correlationId, (err) => {
+            if (err != null) {
+                return;
+            } 
+
+            this._logger.trace(null, "Started listening messages at %s", this.getName());
+
+            // Resend collected messages to receiver
+            async.whilst(
+                () => {
+                    return this.isOpen() && this._messages.length > 0;
+                },
+                (whilstCallback) => {
+                    let message = this._messages.shift();
+                    if (message != null) {
+                        this.sendMessageToReceiver(receiver, message);
+                    }
+                    whilstCallback();
+                },
+                (err) => {
+                    // Set the receiver
+                    if (this.isOpen()) {
+                        this._receiver = receiver;
+                    }
                 }
-                whilstCallback();
-            },
-            (err) => {
-                // Set the receiver
-                if (this.isOpen()) {
-                    this._receiver = receiver;
-                }
-            }
-        );
+            );
+        });
     }
 
     /**

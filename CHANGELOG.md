@@ -9,6 +9,7 @@ Migrated to a new messaging model
 * **connect** - Added MqttConnection component
 * **queues** - Reimplemented the queue to work with shared connection
 * **queues** - Added serialize_envelop option to queue to send JSON messages
+* **queues** - Added autosubscribe option
 
 ## <a name="3.0.0"></a> 3.0.0 (2018-11-03)
 

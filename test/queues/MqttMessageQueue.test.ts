@@ -19,7 +19,8 @@ suite('MqttMessageQueue', ()=> {
         'topic', brokerTopic,
         'connection.protocol', 'mqtt',
         'connection.host', brokerHost,
-        'connection.port', brokerPort
+        'connection.port', brokerPort,
+        'options.autosubscribe', true
     );
 
     setup((done) => {

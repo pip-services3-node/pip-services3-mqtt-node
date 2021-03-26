@@ -94,7 +94,7 @@ export declare class MqttMessageQueue extends MessageQueue implements IReference
     protected _qos: number;
     protected _retain: boolean;
     protected _autoSubscribe: boolean;
-    protected _subscribe: boolean;
+    protected _subscribed: boolean;
     protected _messages: MessageEnvelope[];
     protected _receiver: IMessageReceiver;
     /**
@@ -141,6 +141,7 @@ export declare class MqttMessageQueue extends MessageQueue implements IReference
      */
     close(correlationId: string, callback?: (err: any) => void): void;
     protected getTopic(): string;
+    protected subscribe(correlationId: string, callback: (err: any) => void): void;
     protected fromMessage(message: MessageEnvelope): any;
     protected toMessage(topic: string, data: any, packet: any): MessageEnvelope;
     onMessage(topic: string, data: any, packet: any): void;
