@@ -16,6 +16,7 @@ import { MqttSubscription } from './MqttSubscription';
  *
  * ### Configuration parameters ###
  *
+ * - client_id:               (optional) name of the client id
  * - connection(s):
  *   - discovery_key:               (optional) a key to retrieve the connection from [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]]
  *   - host:                        host name or IP address
@@ -63,6 +64,7 @@ export declare class MqttConnection implements IMessageQueueConnection, IReferen
      * Topic subscriptions
      */
     protected _subscriptions: MqttSubscription[];
+    protected _clientId: string;
     protected _retryConnect: boolean;
     protected _connectTimeout: number;
     protected _keepAliveTimeout: number;

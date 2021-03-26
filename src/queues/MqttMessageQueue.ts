@@ -18,8 +18,6 @@ import { CompositeLogger } from 'pip-services3-components-node';
 import { IMessageReceiver, MessageQueue } from 'pip-services3-messaging-node';
 import { MessagingCapabilities } from 'pip-services3-messaging-node';
 import { MessageEnvelope } from 'pip-services3-messaging-node';
-import { ConnectionParams } from 'pip-services3-components-node';
-import { CredentialParams } from 'pip-services3-components-node';
 
 import { MqttConnection } from '../connect/MqttConnection';
 
@@ -42,6 +40,7 @@ import { MqttConnection } from '../connect/MqttConnection';
  *   - password:                    user password
  * - options:
  *   - serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
+ *   - autosubscribe:        (optional) true to automatically subscribe on option (default: false)
  *   - qos:                  (optional) quality of service level aka QOS (default: 0)
  *   - retain:               (optional) retention flag for published messages (default: false)
  *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
@@ -89,6 +88,7 @@ export class MqttMessageQueue extends MessageQueue
     private static _defaultConfig: ConfigParams = ConfigParams.fromTuples(
         "topic", null,
         "options.serialize_envelop", true,
+        "options.autosubscribe", false,
         "options.retry_connect", true,
         "options.connect_timeout", 30000,
         "options.reconnect_timeout", 1000,
@@ -120,6 +120,8 @@ export class MqttMessageQueue extends MessageQueue
     protected _topic: string;
     protected _qos: number;
     protected _retain: boolean;
+    protected _autoSubscribe: boolean;
+    protected _subscribe: boolean;
     protected _messages: MessageEnvelope[] = [];
     protected _receiver: IMessageReceiver;
 
@@ -144,6 +146,7 @@ export class MqttMessageQueue extends MessageQueue
         this._dependencyResolver.configure(config);
 
         this._topic = config.getAsStringWithDefault("topic", this._topic);
+        this._autoSubscribe = config.getAsBooleanWithDefault("options.autosubscribe", this._autoSubscribe);
         this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop);
         this._qos = config.getAsIntegerWithDefault("options.qos", this._qos);
         this._retain = config.getAsBooleanWithDefault("options.retain", this._retain);

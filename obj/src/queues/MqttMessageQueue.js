@@ -34,6 +34,7 @@ const MqttConnection_1 = require("../connect/MqttConnection");
  *   - password:                    user password
  * - options:
  *   - serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
+ *   - autosubscribe:        (optional) true to automatically subscribe on option (default: false)
  *   - qos:                  (optional) quality of service level aka QOS (default: 0)
  *   - retain:               (optional) retention flag for published messages (default: false)
  *   - retry_connect:        (optional) turns on/off automated reconnect when connection is log (default: true)
@@ -103,6 +104,7 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
         this._config = config;
         this._dependencyResolver.configure(config);
         this._topic = config.getAsStringWithDefault("topic", this._topic);
+        this._autoSubscribe = config.getAsBooleanWithDefault("options.autosubscribe", this._autoSubscribe);
         this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop);
         this._qos = config.getAsIntegerWithDefault("options.qos", this._qos);
         this._retain = config.getAsBooleanWithDefault("options.retain", this._retain);
@@ -506,5 +508,5 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
     }
 }
 exports.MqttMessageQueue = MqttMessageQueue;
-MqttMessageQueue._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples("topic", null, "options.serialize_envelop", true, "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000, "options.qos", 0, "options.retain", false);
+MqttMessageQueue._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples("topic", null, "options.serialize_envelop", true, "options.autosubscribe", false, "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000, "options.qos", 0, "options.retain", false);
 //# sourceMappingURL=MqttMessageQueue.js.map

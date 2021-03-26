@@ -4,6 +4,8 @@ exports.MqttConnection = void 0;
 /** @module queues */
 /** @hidden */
 const mqtt = require('mqtt');
+/** @hidden */
+const os = require('os');
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
 const pip_services3_components_node_1 = require("pip-services3-components-node");
 const pip_services3_commons_node_2 = require("pip-services3-commons-node");
@@ -16,6 +18,7 @@ const MqttConnectionResolver_1 = require("../connect/MqttConnectionResolver");
  *
  * ### Configuration parameters ###
  *
+ * - client_id:               (optional) name of the client id
  * - connection(s):
  *   - discovery_key:               (optional) a key to retrieve the connection from [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]]
  *   - host:                        host name or IP address
@@ -49,7 +52,7 @@ class MqttConnection {
         this._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples(
         // connections.*
         // credential.*
-        "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000);
+        "client_id", null, "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000);
         /**
          * The logger.
          */
@@ -66,6 +69,7 @@ class MqttConnection {
          * Topic subscriptions
          */
         this._subscriptions = [];
+        this._clientId = os.hostname();
         this._retryConnect = true;
         this._connectTimeout = 30000;
         this._keepAliveTimeout = 60000;
@@ -80,6 +84,7 @@ class MqttConnection {
         config = config.setDefaults(this._defaultConfig);
         this._connectionResolver.configure(config);
         this._options = this._options.override(config.getSection("options"));
+        this._clientId = config.getAsStringWithDefault("client_id", this._clientId);
         this._retryConnect = config.getAsBooleanWithDefault("options.retry_connect", this._retryConnect);
         this._connectTimeout = config.getAsIntegerWithDefault("options.max_reconnect", this._connectTimeout);
         this._reconnectTimeout = config.getAsIntegerWithDefault("options.reconnect_timeout", this._reconnectTimeout);
@@ -122,6 +127,7 @@ class MqttConnection {
                     this._logger.error(correlationId, err, 'Failed to resolve MQTT connection');
                 return;
             }
+            options.clientId = this._clientId;
             options.keepalive = this._keepAliveTimeout / 1000;
             options.connectTimeout = this._connectTimeout;
             options.reconnectPeriod = this._reconnectTimeout;

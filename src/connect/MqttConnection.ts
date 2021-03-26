@@ -1,6 +1,8 @@
 /** @module queues */
 /** @hidden */
 const mqtt = require('mqtt');
+/** @hidden */
+const os = require('os');
 
 import { IReferenceable } from 'pip-services3-commons-node';
 import { IReferences } from 'pip-services3-commons-node';
@@ -23,6 +25,7 @@ import { MqttSubscription } from './MqttSubscription';
  * 
  * ### Configuration parameters ###
  * 
+ * - client_id:               (optional) name of the client id
  * - connection(s):
  *   - discovery_key:               (optional) a key to retrieve the connection from [[https://pip-services3-node.github.io/pip-services3-components-node/interfaces/connect.idiscovery.html IDiscovery]]
  *   - host:                        host name or IP address
@@ -54,6 +57,7 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
         // connections.*
         // credential.*
 
+        "client_id", null,
         "options.retry_connect", true,
         "options.connect_timeout", 30000,
         "options.reconnect_timeout", 1000,
@@ -83,6 +87,7 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
      */
     protected _subscriptions: MqttSubscription[] = [];
 
+    protected _clientId: string = os.hostname();
     protected _retryConnect: boolean = true;
     protected _connectTimeout: number = 30000;
     protected _keepAliveTimeout: number = 60000;
@@ -103,6 +108,7 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
         this._connectionResolver.configure(config);
         this._options = this._options.override(config.getSection("options"));
 
+        this._clientId = config.getAsStringWithDefault("client_id", this._clientId);
         this._retryConnect = config.getAsBooleanWithDefault("options.retry_connect", this._retryConnect);
         this._connectTimeout = config.getAsIntegerWithDefault("options.max_reconnect", this._connectTimeout);
         this._reconnectTimeout = config.getAsIntegerWithDefault("options.reconnect_timeout", this._reconnectTimeout);
@@ -147,6 +153,7 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
                 return;
             }
 
+            options.clientId = this._clientId;
             options.keepalive = this._keepAliveTimeout / 1000;
             options.connectTimeout = this._connectTimeout;
             options.reconnectPeriod = this._reconnectTimeout;
