@@ -171,12 +171,12 @@ class MqttConnection {
         return this._connection;
     }
     /**
-     * Gets a list of registered queue names.
+     * Reads a list of registered queue names.
      * If connection doesn't support this function returnes an empty list.
-     * @returns a list with registered queue names.
+     * @callback to receive a list with registered queue names or an error.
      */
-    getQueueNames() {
-        return [];
+    readQueueNames(callback) {
+        callback(null, []);
     }
     /**
      * Checks if connection is open

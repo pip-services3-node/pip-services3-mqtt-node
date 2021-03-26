@@ -105,11 +105,11 @@ export declare class MqttConnection implements IMessageQueueConnection, IReferen
     close(correlationId: string, callback?: (err: any) => void): void;
     getConnection(): any;
     /**
-     * Gets a list of registered queue names.
+     * Reads a list of registered queue names.
      * If connection doesn't support this function returnes an empty list.
-     * @returns a list with registered queue names.
+     * @callback to receive a list with registered queue names or an error.
      */
-    getQueueNames(): string[];
+    readQueueNames(callback: (err: any, queueNames: string[]) => void): void;
     /**
      * Checks if connection is open
      * @returns an error is connection is closed or <code>null<code> otherwise.
