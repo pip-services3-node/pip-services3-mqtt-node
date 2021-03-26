@@ -179,6 +179,26 @@ class MqttConnection {
         callback(null, []);
     }
     /**
+     * Creates a message queue.
+     * If connection doesn't support this function it exists without error.
+     * @param name the name of the queue to be created.
+     * @param callback notifies about completion with error or null for success.
+     */
+    createQueue(name, callback) {
+        if (callback)
+            callback(null);
+    }
+    /**
+     * Deletes a message queue.
+     * If connection doesn't support this function it exists without error.
+     * @param name the name of the queue to be deleted.
+     * @param callback notifies about completion with error or null for success.
+     */
+    deleteQueue(name, callback) {
+        if (callback)
+            callback(null);
+    }
+    /**
      * Checks if connection is open
      * @returns an error is connection is closed or <code>null<code> otherwise.
      */

@@ -111,6 +111,20 @@ export declare class MqttConnection implements IMessageQueueConnection, IReferen
      */
     readQueueNames(callback: (err: any, queueNames: string[]) => void): void;
     /**
+     * Creates a message queue.
+     * If connection doesn't support this function it exists without error.
+     * @param name the name of the queue to be created.
+     * @param callback notifies about completion with error or null for success.
+     */
+    createQueue(name: string, callback: (err: any) => void): void;
+    /**
+     * Deletes a message queue.
+     * If connection doesn't support this function it exists without error.
+     * @param name the name of the queue to be deleted.
+     * @param callback notifies about completion with error or null for success.
+     */
+    deleteQueue(name: string, callback: (err: any) => void): void;
+    /**
      * Checks if connection is open
      * @returns an error is connection is closed or <code>null<code> otherwise.
      */

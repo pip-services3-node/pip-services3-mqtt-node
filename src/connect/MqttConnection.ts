@@ -208,8 +208,28 @@ export class MqttConnection implements IMessageQueueConnection, IReferenceable, 
      * If connection doesn't support this function returnes an empty list.
      * @callback to receive a list with registered queue names or an error.
      */
-     public readQueueNames(callback: (err: any, queueNames: string[]) => void): void {
+    public readQueueNames(callback: (err: any, queueNames: string[]) => void): void {
         callback(null, []);
+    }
+
+    /**
+     * Creates a message queue.
+     * If connection doesn't support this function it exists without error.
+     * @param name the name of the queue to be created.
+     * @param callback notifies about completion with error or null for success.
+     */
+    public createQueue(name: string, callback: (err: any) => void): void {
+        if (callback) callback(null);
+    }
+
+     /**
+      * Deletes a message queue.
+      * If connection doesn't support this function it exists without error.
+      * @param name the name of the queue to be deleted.
+      * @param callback notifies about completion with error or null for success.
+      */
+    public deleteQueue(name: string, callback: (err: any) => void): void {
+        if (callback) callback(null);
     }
 
     /**
