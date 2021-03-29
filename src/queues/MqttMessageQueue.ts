@@ -491,8 +491,13 @@ export class MqttMessageQueue extends MessageQueue
             let checkInterval = 100;
             let elapsedTime = 0;
             async.whilst(
-                () => {
-                    return this.isOpen() && elapsedTime < waitTimeout && message == null;
+                (callback) => {
+                    let result = this.isOpen() && elapsedTime < waitTimeout && message == null;
+                    if (typeof callback === "function") {
+                        callback(null, test);
+                    } else {
+                        return test;
+                    }
                 },
                 (whilstCallback) => {
                     elapsedTime += checkInterval;
@@ -632,8 +637,13 @@ export class MqttMessageQueue extends MessageQueue
 
             // Resend collected messages to receiver
             async.whilst(
-                () => {
-                    return this.isOpen() && this._messages.length > 0;
+                (callback) => {
+                    let test = this.isOpen() && this._messages.length > 0;
+                    if (typeof callback === "function") {
+                        callback(null, test);
+                    } else {
+                        return test;
+                    }
                 },
                 (whilstCallback) => {
                     let message = this._messages.shift();
