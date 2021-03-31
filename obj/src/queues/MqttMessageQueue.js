@@ -33,7 +33,7 @@ const MqttConnection_1 = require("../connect/MqttConnection");
  *   - username:                    user name
  *   - password:                    user password
  * - options:
- *   - serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
+ *   - serialize_envelope:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
  *   - autosubscribe:        (optional) true to automatically subscribe on option (default: false)
  *   - qos:                  (optional) quality of service level aka QOS (default: 0)
  *   - retain:               (optional) retention flag for published messages (default: false)
@@ -105,7 +105,7 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
         this._dependencyResolver.configure(config);
         this._topic = config.getAsStringWithDefault("topic", this._topic);
         this._autoSubscribe = config.getAsBooleanWithDefault("options.autosubscribe", this._autoSubscribe);
-        this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop);
+        this._serializeEnvelope = config.getAsBooleanWithDefault("options.serialize_envelope", this._serializeEnvelope);
         this._qos = config.getAsIntegerWithDefault("options.qos", this._qos);
         this._retain = config.getAsBooleanWithDefault("options.retain", this._retain);
     }
@@ -260,7 +260,8 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
         if (message == null)
             return null;
         let data = message.message;
-        if (this._serializeEnvelop) {
+        if (this._serializeEnvelope) {
+            message.sent_time = new Date();
             let json = JSON.stringify(message);
             data = Buffer.from(json, 'utf-8');
         }
@@ -273,7 +274,7 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
         if (data == null)
             return null;
         let message;
-        if (this._serializeEnvelop) {
+        if (this._serializeEnvelope) {
             let json = Buffer.from(data).toString('utf-8');
             message = pip_services3_messaging_node_3.MessageEnvelope.fromJSON(json);
         }
@@ -413,7 +414,7 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
             let checkInterval = 100;
             let elapsedTime = 0;
             async.whilst((callback) => {
-                let result = this.isOpen() && elapsedTime < waitTimeout && message == null;
+                let test = this.isOpen() && elapsedTime < waitTimeout && message == null;
                 if (typeof callback === "function") {
                     callback(null, test);
                 }
@@ -580,5 +581,5 @@ class MqttMessageQueue extends pip_services3_messaging_node_1.MessageQueue {
     }
 }
 exports.MqttMessageQueue = MqttMessageQueue;
-MqttMessageQueue._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples("topic", null, "options.serialize_envelop", true, "options.autosubscribe", false, "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000, "options.qos", 0, "options.retain", false);
+MqttMessageQueue._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples("topic", null, "options.serialize_envelope", false, "options.autosubscribe", false, "options.retry_connect", true, "options.connect_timeout", 30000, "options.reconnect_timeout", 1000, "options.keepalive_timeout", 60000, "options.qos", 0, "options.retain", false);
 //# sourceMappingURL=MqttMessageQueue.js.map

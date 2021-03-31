@@ -28,7 +28,7 @@ import { MqttConnection } from '../connect/MqttConnection';
  *   - username:                    user name
  *   - password:                    user password
  * - options:
- *   - serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
+ *   - serialize_envelope:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
  *   - autosubscribe:        (optional) true to automatically subscribe on option (default: false)
  *   - qos:                  (optional) quality of service level aka QOS (default: 0)
  *   - retain:               (optional) retention flag for published messages (default: false)
@@ -89,7 +89,7 @@ export declare class MqttMessageQueue extends MessageQueue implements IReference
      * The MQTT connection component.
      */
     protected _connection: MqttConnection;
-    protected _serializeEnvelop: boolean;
+    protected _serializeEnvelope: boolean;
     protected _topic: string;
     protected _qos: number;
     protected _retain: boolean;

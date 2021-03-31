@@ -39,7 +39,7 @@ import { MqttConnection } from '../connect/MqttConnection';
  *   - username:                    user name
  *   - password:                    user password
  * - options:
- *   - serialize_message:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
+ *   - serialize_envelope:    (optional) true to serialize entire message as JSON, false to send only message payload (default: true)
  *   - autosubscribe:        (optional) true to automatically subscribe on option (default: false)
  *   - qos:                  (optional) quality of service level aka QOS (default: 0)
  *   - retain:               (optional) retention flag for published messages (default: false)
@@ -87,7 +87,7 @@ export class MqttMessageQueue extends MessageQueue
 
     private static _defaultConfig: ConfigParams = ConfigParams.fromTuples(
         "topic", null,
-        "options.serialize_envelop", true,
+        "options.serialize_envelope", false,
         "options.autosubscribe", false,
         "options.retry_connect", true,
         "options.connect_timeout", 30000,
@@ -116,7 +116,7 @@ export class MqttMessageQueue extends MessageQueue
      */
     protected _connection: MqttConnection;
 
-    protected _serializeEnvelop: boolean;
+    protected _serializeEnvelope: boolean;
     protected _topic: string;
     protected _qos: number;
     protected _retain: boolean;
@@ -147,7 +147,7 @@ export class MqttMessageQueue extends MessageQueue
 
         this._topic = config.getAsStringWithDefault("topic", this._topic);
         this._autoSubscribe = config.getAsBooleanWithDefault("options.autosubscribe", this._autoSubscribe);
-        this._serializeEnvelop = config.getAsBooleanWithDefault("options.serialize_envelop", this._serializeEnvelop);
+        this._serializeEnvelope = config.getAsBooleanWithDefault("options.serialize_envelope", this._serializeEnvelope);
         this._qos = config.getAsIntegerWithDefault("options.qos", this._qos);
         this._retain = config.getAsBooleanWithDefault("options.retain", this._retain);
     }
@@ -316,7 +316,8 @@ export class MqttMessageQueue extends MessageQueue
         if (message == null) return null;
 
         let data = message.message;
-        if (this._serializeEnvelop) {
+        if (this._serializeEnvelope) {
+            message.sent_time = new Date();
             let json = JSON.stringify(message);
             data = Buffer.from(json, 'utf-8');
         }
@@ -331,7 +332,7 @@ export class MqttMessageQueue extends MessageQueue
         if (data == null) return null;
 
         let message: MessageEnvelope;
-        if (this._serializeEnvelop) {
+        if (this._serializeEnvelope) {
             let json = Buffer.from(data).toString('utf-8');
             message = MessageEnvelope.fromJSON(json);
         } else {
@@ -492,7 +493,7 @@ export class MqttMessageQueue extends MessageQueue
             let elapsedTime = 0;
             async.whilst(
                 (callback) => {
-                    let result = this.isOpen() && elapsedTime < waitTimeout && message == null;
+                    let test = this.isOpen() && elapsedTime < waitTimeout && message == null;
                     if (typeof callback === "function") {
                         callback(null, test);
                     } else {
